@@ -1,0 +1,2 @@
+# This file is no longer needed as we're handling everything from the root .htaccess
+# But we'll keep it to prevent any issues with direct access to the public directory

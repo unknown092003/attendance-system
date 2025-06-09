@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /attendance-system/
+
+# Serve static files directly
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Redirect all other requests to index.php
+RewriteRule ^(.*)$ index.php [L,QSA]
