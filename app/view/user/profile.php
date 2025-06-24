@@ -31,6 +31,15 @@
             opacity: 1;
         }
         
+        .modal-content {
+            border-radius: 8px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
         
         .modal.active .modal-content {
             transform: translateY(0);
@@ -42,6 +51,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
         }
         
         .modal-title {
@@ -67,6 +80,9 @@
             display: flex;
             justify-content: flex-end;
             gap: 0.75rem;
+            position: sticky;
+            bottom: 0;
+            background: white;
         }
         
         /* FORM STYLES */
@@ -88,46 +104,34 @@
             font-size: 1rem;
         }
         
-        /* INLINE EDIT STYLES */
-        .edit-form {
-            display: none;
-            margin-top: 0.5rem;
-            padding: 0.75rem;
-            background: #f9f9f9;
-            border-radius: 4px;
-        }
-        
-        .edit-form.active {
-            display: block;
-        }
-        
-        .edit-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        
-        /* FIELD-SPECIFIC STYLES */
-        .detail-value {
-            position: relative;
-        }
-        
-        .edit-detail {
+        /* PROFILE EDIT BUTTON */
+        .profile-edit-btn {
             position: absolute;
-            right: 0;
-            top: 0;
-            background: none;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent);
+            color: white;
             border: none;
-            color: var(--accent);
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
             cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
         }
         
-        .detail-value:hover .edit-detail {
-            opacity: 1;
+        .profile-edit-btn:hover {
+            background: var(--accent-dark);
         }
-
+        
+        /* TWO-COLUMN FORM LAYOUT */
+        .form-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
         /* Status indicator colors */
         .status-indicator {
             display: inline-block;
@@ -210,24 +214,23 @@
         <article class="card profile-card">
             <!-- Profile header section with avatar and basic info -->
             <header class="profile-header">
-                <!-- User avatar with edit button -->
+                <!-- Profile edit button at top right -->
+                <button class="profile-edit-btn" id="profileEditBtn">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </button>
+                
+                <!-- User avatar -->
                 <div class="profile-avatar">
                     <?php if (!empty($user['avatar'])): ?>
                         <img src="assets\img\ocd.png" alt="Avatar" style="width:100%;height:100%;border-radius:50%;">
                     <?php else: ?>
                         <?= get_initials($user['full_name']) ?>
                     <?php endif; ?>
-                    <div class="profile-avatar-edit" title="Edit profile picture">
-                        <i class="fas fa-camera"></i>
-                    </div>
                 </div>
                 
-                <!-- User name with edit button -->
+                <!-- User name -->
                 <h1 class="profile-title">
                     <?= htmlspecialchars($user['full_name']) ?>
-                    <button class="btn-icon" title="Edit name">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
                 </h1>
                 
                 <!-- User role/subtitle -->
@@ -246,94 +249,27 @@
                 <div class="details-column">
                     <!-- School information group -->
                     <div class="detail-group">
-                        <span class="detail-label">
-                            Student Information
-                            <button class="btn-icon btn-sm" title="Edit school info">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </span>
+                        <span class="detail-label">Student Information</span>
                         <span class="detail-value" id="profile-school">
                             <?= htmlspecialchars($user['university'] ?: 'Not set') ?>
                             <small><?= htmlspecialchars($user['college'] ?: 'Not set') ?></small>
-                            <button class="edit-detail" title="Edit school">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            
-                            <!-- Edit form for school information -->
-                            <div class="edit-form" id="school-form">
-                                <form action="/attendance-system/user/update_profile" method="post">
-                                    <input type="hidden" name="field" value="university">
-                                    <input type="text" name="university" class="form-control" 
-                                           value="<?= htmlspecialchars($user['university']) ?>" required>
-                                    <input type="text" name="college" class="form-control" 
-                                           value="<?= htmlspecialchars($user['college']) ?>" required>
-                                    <div class="edit-actions">
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                        <button type="button" class="btn btn-outline cancel-edit">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
                         </span>
                     </div>
                     
                     <!-- Student ID group -->
                     <div class="detail-group">
-                        <span class="detail-label">
-                            Student ID
-                            <button class="btn-icon btn-sm" title="Edit ID">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </span>
+                        <span class="detail-label">Student ID</span>
                         <span class="detail-value" id="profile-id">
                             <?= htmlspecialchars($user['student_number'] ?: 'Not set') ?>
-                            <button class="edit-detail" title="Edit ID">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            
-                            <!-- Edit form for student ID -->
-                            <div class="edit-form" id="student-id-form">
-                                <form action="/attendance-system/user/update_profile" method="post">
-                                    <input type="hidden" name="field" value="student_number">
-                                    <input type="text" name="student_number" class="form-control" 
-                                           value="<?= htmlspecialchars($user['student_number']) ?>" required>
-                                    <div class="edit-actions">
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                        <button type="button" class="btn btn-outline cancel-edit">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
                         </span>
                     </div>
                     
                     <!-- Program information group -->
                     <div class="detail-group">
-                        <span class="detail-label">
-                            Program
-                            <button class="btn-icon btn-sm" title="Edit program">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </span>
+                        <span class="detail-label">Program</span>
                         <span class="detail-value">
                             <?= htmlspecialchars($user['program'] ?: 'Not set') ?>
                             <small>Year <?= htmlspecialchars($user['year_level'] ?: 'Not set') ?></small>
-                            <button class="edit-detail" title="Edit program">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            
-                            <!-- Edit form for program information -->
-                            <div class="edit-form" id="program-form">
-                                <form action="/attendance-system/user/update_profile" method="post">
-                                    <input type="hidden" name="field" value="program">
-                                    <input type="text" name="program" class="form-control" 
-                                           value="<?= htmlspecialchars($user['program']) ?>" required>
-                                    <input type="text" name="year_level" class="form-control" 
-                                           value="<?= htmlspecialchars($user['year_level']) ?>">
-                                    <div class="edit-actions">
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                        <button type="button" class="btn btn-outline cancel-edit">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
                         </span>
                     </div>
                 </div>
@@ -342,44 +278,16 @@
                 <div class="details-column">
                     <!-- Contact information group -->
                     <div class="detail-group">
-                        <span class="detail-label">
-                            Contact Details
-                            <button class="btn-icon btn-sm" title="Edit contact">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </span>
+                        <span class="detail-label">Contact Details</span>
                         <span class="detail-value" id="profile-contact">
                             <?= htmlspecialchars($user['phone'] ?: 'Not set') ?>
                             <small><?= htmlspecialchars($user['email'] ?: 'Not set') ?></small>
-                            <button class="edit-detail" title="Edit contact">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            
-                            <!-- Edit form for contact information -->
-                            <div class="edit-form" id="contact-form">
-                                <form action="/attendance-system/user/update_profile" method="post">
-                                    <input type="hidden" name="field" value="contact">
-                                    <input type="tel" name="phone" class="form-control" 
-                                           value="<?= htmlspecialchars($user['phone']) ?>" required>
-                                    <input type="email" name="email" class="form-control" 
-                                           value="<?= htmlspecialchars($user['email']) ?>" required>
-                                    <div class="edit-actions">
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                        <button type="button" class="btn btn-outline cancel-edit">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
                         </span>
                     </div>
                     
                     <!-- Internship period group -->
                     <div class="detail-group">
-                        <span class="detail-label">
-                            Internship Period
-                            <button class="btn-icon btn-sm" title="Edit dates">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </span>
+                        <span class="detail-label">Internship Period</span>
                         <span class="detail-value" id="profile-dates">
                             <?php
                             $start = $user['internship_start'] ? format_date($user['internship_start']) : 'Not set';
@@ -399,70 +307,18 @@
                                 }
                                 ?>
                             </small>
-                            <button class="edit-detail" title="Edit dates">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            
-                            <!-- Edit form for internship dates -->
-                            <div class="edit-form" id="internship-form">
-                                <form action="/attendance-system/user/update_profile" method="post">
-                                    <input type="hidden" name="field" value="internship">
-                                    <div class="form-group">
-                                        <label class="form-label">Start Date</label>
-                                        <input type="date" name="internship_start" class="form-control" 
-                                               value="<?= htmlspecialchars($user['internship_start']) ?>">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">End Date</label>
-                                        <input type="date" name="internship_end" class="form-control" 
-                                               value="<?= htmlspecialchars($user['internship_end']) ?>">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Required Hours</label>
-                                        <input type="number" name="required_hours" class="form-control" 
-                                               value="<?= htmlspecialchars($user['required_hours']) ?>">
-                                    </div>
-                                    <div class="edit-actions">
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                        <button type="button" class="btn btn-outline cancel-edit">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
                         </span>
                     </div>
                     
                     <!-- Supervisor information group -->
                     <div class="detail-group">
-                        <span class="detail-label">
-                            Supervisor
-                            <button class="btn-icon btn-sm" title="Edit supervisor">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                        </span>
+                        <span class="detail-label">Supervisor</span>
                         <span class="detail-value" id="profile-supervisor">
                             <?php
                             $supervisor_notes = json_decode($user['supervisor_notes'] ?? '', true);
                             echo htmlspecialchars($supervisor_notes['name'] ?? 'Not assigned');
                             ?>
                             <small><?= htmlspecialchars($supervisor_notes['email'] ?? '') ?></small>
-                            <button class="edit-detail" title="Edit supervisor">
-                                <i class="fas fa-pencil-alt"></i>
-                            </button>
-                            
-                            <!-- Edit form for supervisor information -->
-                            <div class="edit-form" id="supervisor-form">
-                                <form action="/attendance-system/user/update_profile" method="post">
-                                    <input type="hidden" name="field" value="supervisor">
-                                    <input type="text" name="supervisor_name" class="form-control" 
-                                           value="<?= htmlspecialchars($supervisor_notes['name'] ?? '') ?>" required>
-                                    <input type="email" name="supervisor_email" class="form-control" 
-                                           value="<?= htmlspecialchars($supervisor_notes['email'] ?? '') ?>" required>
-                                    <div class="edit-actions">
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                        <button type="button" class="btn btn-outline cancel-edit">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
                         </span>
                     </div>
                 </div>
@@ -509,7 +365,7 @@
         </article>
     </div>
 
-    <!-- Modal for editing profile information -->
+    <!-- Modal for editing all profile information -->
     <div class="modal" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -517,19 +373,102 @@
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <form action="/attendance-system/user/update_profile" method="post">
-                    <div class="form-group">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" name="full_name" class="form-control" value="<?= htmlspecialchars($user['full_name']) ?>" required>
+                <form action="/attendance-system/app/view/user/update_profile.php" method="post" id="profileForm">
+                    <?php if (isset($_SESSION['csrf_token'])): ?>
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                    <?php endif; ?>
+                    <div class="form-columns">
+                        <!-- Left Column -->
+                        <div class="form-column">
+                            <!-- Personal Information -->
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" name="full_name" class="form-control" 
+                                       value="<?= htmlspecialchars($user['full_name']) ?>" required>
+                            </div>
+                            
+                            <!-- Contact Information -->
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control" 
+                                       value="<?= htmlspecialchars($user['email']) ?>" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" name="phone" class="form-control" 
+                                       value="<?= htmlspecialchars($user['phone']) ?>">
+                            </div>
+                            
+                            <!-- Student Information -->
+                            <div class="form-group">
+                                <label class="form-label">University</label>
+                                <input type="text" name="university" class="form-control" 
+                                       value="<?= htmlspecialchars($user['university']) ?>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">College/Faculty</label>
+                                <input type="text" name="college" class="form-control" 
+                                       value="<?= htmlspecialchars($user['college']) ?>">
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column -->
+                        <div class="form-column">
+                            <!-- Academic Information -->
+                            <div class="form-group">
+                                <label class="form-label">Student ID</label>
+                                <input type="text" name="student_number" class="form-control" 
+                                       value="<?= htmlspecialchars($user['student_number']) ?>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Program</label>
+                                <input type="text" name="program" class="form-control" 
+                                       value="<?= htmlspecialchars($user['program']) ?>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Year Level</label>
+                                <input type="text" name="year_level" class="form-control" 
+                                       value="<?= htmlspecialchars($user['year_level']) ?>">
+                            </div>
+                            
+                            <!-- Internship Information -->
+                            <div class="form-group">
+                                <label class="form-label">Internship Start Date</label>
+                                <input type="date" name="internship_start" class="form-control" 
+                                       value="<?= htmlspecialchars($user['internship_start']) ?>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Internship End Date</label>
+                                <input type="date" name="internship_end" class="form-control" 
+                                       value="<?= htmlspecialchars($user['internship_end']) ?>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Required Hours</label>
+                                <input type="number" name="required_hours" class="form-control" 
+                                       value="<?= htmlspecialchars($user['required_hours']) ?>">
+                            </div>
+                            
+                            <!-- Supervisor Information -->
+                            <div class="form-group">
+                                <label class="form-label">Supervisor Name</label>
+                                <input type="text" name="supervisor_name" class="form-control" 
+                                       value="<?= htmlspecialchars($supervisor_notes['name'] ?? '') ?>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Supervisor Email</label>
+                                <input type="email" name="supervisor_email" class="form-control" 
+                                       value="<?= htmlspecialchars($supervisor_notes['email'] ?? '') ?>">
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email']) ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Phone</label>
-                        <input type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($user['phone']) ?>">
-                    </div>
+                    
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline modal-close">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -539,283 +478,217 @@
         </div>
     </div>
 
-    <script>
-        // Main DOM content loaded event
-        document.addEventListener('DOMContentLoaded', function() {
-            // Tab functionality
-            const tabButtons = document.querySelectorAll('[role="tab"]');
-            const tabPanels = document.querySelectorAll('[role="tabpanel"]');
-            const tabNav = document.querySelector('.tab-nav');
+<!-- Removed duplicate form tag to avoid nested forms and JS confusion -->
+<script>
+// Main DOM content loaded event - runs when page is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab functionality implementation
+    
+    // Get all tab buttons and panels
+    const tabButtons = document.querySelectorAll('[role="tab"]');
+    const tabPanels = document.querySelectorAll('[role="tabpanel"]');
+    const tabNav = document.querySelector('.tab-nav');
+    
+    // Tab switching logic
+    document.querySelector('[role="tablist"]').addEventListener('click', function(e) {
+        const tab = e.target.closest('[role="tab"]');
+        if (!tab) return;
+        
+        e.preventDefault();
+        switchTab(tab);
+    });
+    
+    // Keyboard navigation for tabs (accessibility)
+    document.querySelector('[role="tablist"]').addEventListener('keydown', function(e) {
+        const activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
+        
+        // Right/left arrow key navigation
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            const direction = e.key === 'ArrowRight' ? 1 : -1;
+            const tabs = Array.from(tabButtons);
+            const currentIndex = tabs.indexOf(activeTab);
+            let nextIndex = currentIndex + direction;
             
-            // Tab switching logic
-            document.querySelector('[role="tablist"]').addEventListener('click', function(e) {
-                const tab = e.target.closest('[role="tab"]');
-                if (!tab) return;
-                
-                e.preventDefault();
-                switchTab(tab);
-            });
+            // Wrap around if at beginning/end
+            if (nextIndex < 0) nextIndex = tabs.length - 1;
+            if (nextIndex >= tabs.length) nextIndex = 0;
             
-            // Keyboard navigation for tabs
-            document.querySelector('[role="tablist"]').addEventListener('keydown', function(e) {
-                const activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
-                
-                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-                    const direction = e.key === 'ArrowRight' ? 1 : -1;
-                    const tabs = Array.from(tabButtons);
-                    const currentIndex = tabs.indexOf(activeTab);
-                    let nextIndex = currentIndex + direction;
-                    
-                    if (nextIndex < 0) nextIndex = tabs.length - 1;
-                    if (nextIndex >= tabs.length) nextIndex = 0;
-                    
-                    switchTab(tabs[nextIndex]);
-                    tabs[nextIndex].focus();
-                }
-                
-                if (e.key === 'Home') {
-                    switchTab(tabButtons[0]);
-                    tabButtons[0].focus();
-                    e.preventDefault();
-                }
-                
-                if (e.key === 'End') {
-                    switchTab(tabButtons[tabButtons.length - 1]);
-                    tabButtons[tabButtons.length - 1].focus();
-                    e.preventDefault();
-                }
-            });
-            
-            // Function to switch between tabs
-            function switchTab(newTab) {
-                const controls = newTab.getAttribute('aria-controls');
-                const panel = document.getElementById(controls);
-                const tabTarget = newTab.getAttribute('data-tab-target');
-                
-                tabNav.setAttribute('data-active-tab', tabTarget);
-                
-                // Update tab states
-                tabButtons.forEach(tab => {
-                    tab.setAttribute('aria-selected', 'false');
-                    tab.classList.remove('active');
-                });
-                
-                // Hide all panels with animation
-                tabPanels.forEach(p => {
-                    if (!p.hidden) {
-                        p.style.opacity = '0';
-                        p.style.transform = 'translateY(10px)';
-                        setTimeout(() => {
-                            p.hidden = true;
-                        }, 300);
-                    }
-                });
-                
-                // Activate new tab
-                newTab.setAttribute('aria-selected', 'true');
-                newTab.classList.add('active');
-                
-                // Show new panel with animation
+            switchTab(tabs[nextIndex]);
+            tabs[nextIndex].focus();
+        }
+        
+        // Home/End key navigation
+        if (e.key === 'Home') {
+            switchTab(tabButtons[0]);
+            tabButtons[0].focus();
+            e.preventDefault();
+        }
+        
+        if (e.key === 'End') {
+            switchTab(tabButtons[tabButtons.length - 1]);
+            tabButtons[tabButtons.length - 1].focus();
+            e.preventDefault();
+        }
+    });
+    
+    /**
+     * Function to switch between tabs
+     * @param {HTMLElement} newTab - The tab to activate
+     */
+    function switchTab(newTab) {
+        const controls = newTab.getAttribute('aria-controls');
+        const panel = document.getElementById(controls);
+        const tabTarget = newTab.getAttribute('data-tab-target');
+        
+        // Update active tab indicator
+        tabNav.setAttribute('data-active-tab', tabTarget);
+        
+        // Deactivate all tabs
+        tabButtons.forEach(tab => {
+            tab.setAttribute('aria-selected', 'false');
+            tab.classList.remove('active');
+        });
+        
+        // Hide all panels with animation
+        tabPanels.forEach(p => {
+            if (!p.hidden) {
+                p.style.opacity = '0';
+                p.style.transform = 'translateY(10px)';
                 setTimeout(() => {
-                    panel.hidden = false;
-                    setTimeout(() => {
-                        panel.style.opacity = '1';
-                        panel.style.transform = 'translateY(0)';
-                    }, 10);
+                    p.hidden = true;
                 }, 300);
             }
-            
-            // Initialize first tab
-            const firstTab = document.querySelector('[role="tab"][aria-selected="true"]');
-            if (firstTab) {
-                firstTab.classList.add('active');
-                const firstPanel = document.getElementById(firstTab.getAttribute('aria-controls'));
-                if (firstPanel) {
-                    firstPanel.hidden = false;
-                }
+        });
+        
+        // Activate new tab
+        newTab.setAttribute('aria-selected', 'true');
+        newTab.classList.add('active');
+        
+        // Show new panel with animation
+        setTimeout(() => {
+            panel.hidden = false;
+            setTimeout(() => {
+                panel.style.opacity = '1';
+                panel.style.transform = 'translateY(0)';
+            }, 10);
+        }, 300);
+    }
+    
+    // Initialize first tab as active
+    const firstTab = document.querySelector('[role="tab"][aria-selected="true"]');
+    if (firstTab) {
+        firstTab.classList.add('active');
+        const firstPanel = document.getElementById(firstTab.getAttribute('aria-controls'));
+        if (firstPanel) {
+            firstPanel.hidden = false;
+        }
+    }
+    
+    // Modal functionality for the profile edit button
+    const profileEditBtn = document.getElementById('profileEditBtn');
+    const editModal = document.getElementById('editModal');
+    const modalClose = document.querySelector('.modal-close');
+    
+    // Open modal when edit button is clicked
+    profileEditBtn.addEventListener('click', function() {
+        editModal.classList.add('active');
+    });
+    
+    // Close modal when X button is clicked
+    modalClose.addEventListener('click', function() {
+        editModal.classList.remove('active');
+    });
+    
+    // Close modal when clicking outside content
+    editModal.addEventListener('click', function(e) {
+        if (e.target === editModal) {
+            editModal.classList.remove('active');
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && editModal.classList.contains('active')) {
+            editModal.classList.remove('active');
+        }
+    });
+    
+    /**
+     * Handles form submission for the profile edit form (AJAX)
+     * Updates all profile data without page reload
+     */
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        formData.append('field', 'all'); // Indicate this is a full profile update
+        
+        // Send data to server via fetch API
+        fetch('/attendance-system/app/view/user/update_profile.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(async response => {
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error('Network response was not ok: ' + errorText);
             }
-            
-            // Edit functionality for profile details
-            document.querySelectorAll('.edit-detail, .btn-icon[title*="Edit"]').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    
-                    // Check if this is a specific field edit or general modal
-                    const parentValue = this.closest('.detail-value');
-                    if (parentValue) {
-                        const formId = parentValue.id.replace('profile-', '') + '-form';
-                        const editForm = document.getElementById(formId);
-                        
-                        // Toggle the specific edit form
-                        if (editForm) {
-                            editForm.classList.toggle('active');
-                            return;
-                        }
-                    }
-                    
-                    // Otherwise show the general modal
-                    document.getElementById('editModal').classList.add('active');
-                });
-            });
-            
-            // Cancel buttons in edit forms
-            document.querySelectorAll('.cancel-edit').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    this.closest('.edit-form').classList.remove('active');
-                });
-            });
-            
-            // Modal close functionality
-            const modalClose = document.querySelector('.modal-close');
-            const editModal = document.getElementById('editModal');
-            
-            modalClose.addEventListener('click', function() {
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Update all displayed profile information
+                document.querySelector('.profile-title').textContent = formData.get('full_name');
+                
+                // Update contact info
+                document.getElementById('profile-contact').innerHTML = 
+                    `${formData.get('phone')}<small>${formData.get('email')}</small>`;
+                
+                // Update university/college
+                document.getElementById('profile-school').innerHTML = 
+                    `${formData.get('university')}<small>${formData.get('college')}</small>`;
+                
+                // Update student ID
+                document.getElementById('profile-id').textContent = formData.get('student_number');
+                
+                // Update program/year level
+                document.querySelector('.details-column .detail-group:nth-child(3) .detail-value').innerHTML = 
+                    `${formData.get('program')}<small>Year ${formData.get('year_level')}</small>`;
+                
+                // Update internship dates
+                const startDate = new Date(formData.get('internship_start'));
+                const endDate = new Date(formData.get('internship_end'));
+                const diffTime = Math.abs(endDate - startDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const weeks = Math.floor(diffDays / 7);
+                
+                document.getElementById('profile-dates').innerHTML = 
+                    `${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} 
+                    to 
+                    ${endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    <small>(${weeks} weeks, ${formData.get('required_hours')} required hours)</small>`;
+                
+                // Update supervisor info
+                document.getElementById('profile-supervisor').innerHTML = 
+                    `${formData.get('supervisor_name')}<small>${formData.get('supervisor_email')}</small>`;
+                
+                // Close the modal
                 editModal.classList.remove('active');
-            });
-            
-            editModal.addEventListener('click', function(e) {
-                if (e.target === editModal) {
-                    editModal.classList.remove('active');
-                }
-            });
-            
-            // Close modal with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && editModal.classList.contains('active')) {
-                    editModal.classList.remove('active');
-                }
-            });
-            
-            // Form submission handling with AJAX
-        document.querySelectorAll('.edit-form form, #editModal form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
                 
-                const formData = new FormData(this);
-                const field = formData.get('field');
-                
-                fetch(form.action, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Update the displayed values based on which form was submitted
-                        switch(field) {
-                            case 'university':
-                                document.getElementById('profile-school').innerHTML = 
-                                    `${formData.get('university')}<small>${formData.get('college')}</small>
-                                    <button class="edit-detail" title="Edit school">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <div class="edit-form" id="school-form">
-                                        <!-- Keep the edit form structure -->
-                                        ${document.getElementById('school-form').innerHTML}
-                                    </div>`;
-                                break;
-                                
-                            case 'student_number':
-                                document.getElementById('profile-id').innerHTML = 
-                                    `${formData.get('student_number')}
-                                    <button class="edit-detail" title="Edit ID">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <div class="edit-form" id="student-id-form">
-                                        ${document.getElementById('student-id-form').innerHTML}
-                                    </div>`;
-                                break;
-                                
-                            case 'program':
-                                document.querySelector('#profile-program .detail-value').innerHTML = 
-                                    `${formData.get('program')}<small>Year ${formData.get('year_level')}</small>
-                                    <button class="edit-detail" title="Edit program">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <div class="edit-form" id="program-form">
-                                        ${document.getElementById('program-form').innerHTML}
-                                    </div>`;
-                                break;
-                                
-                            case 'contact':
-                                document.getElementById('profile-contact').innerHTML = 
-                                    `${formData.get('phone')}<small>${formData.get('email')}</small>
-                                    <button class="edit-detail" title="Edit contact">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <div class="edit-form" id="contact-form">
-                                        ${document.getElementById('contact-form').innerHTML}
-                                    </div>`;
-                                break;
-                                
-                            case 'internship':
-                                const startDate = new Date(formData.get('internship_start')).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-                                const endDate = new Date(formData.get('internship_end')).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-                                document.getElementById('profile-dates').innerHTML = 
-                                    `${startDate} to ${endDate}
-                                    <small>(${formData.get('required_hours')} required hours)</small>
-                                    <button class="edit-detail" title="Edit dates">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <div class="edit-form" id="internship-form">
-                                        ${document.getElementById('internship-form').innerHTML}
-                                    </div>`;
-                                break;
-                                
-                            case 'supervisor':
-                                document.getElementById('profile-supervisor').innerHTML = 
-                                    `${formData.get('supervisor_name')}<small>${formData.get('supervisor_email')}</small>
-                                    <button class="edit-detail" title="Edit supervisor">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <div class="edit-form" id="supervisor-form">
-                                        ${document.getElementById('supervisor-form').innerHTML}
-                                    </div>`;
-                                break;
-                                
-                            default:
-                                // For modal form updates (full name, email, phone)
-                                document.querySelector('.profile-title').innerHTML = 
-                                    `${formData.get('full_name')} 
-                                    <button class="btn-icon" title="Edit name">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>`;
-                                document.getElementById('profile-contact').innerHTML = 
-                                    `${formData.get('phone')}<small>${formData.get('email')}</small>
-                                    <button class="edit-detail" title="Edit contact">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <div class="edit-form" id="contact-form">
-                                        ${document.getElementById('contact-form').innerHTML}
-                                    </div>`;
-                                break;
-                        }
-                                                  // Close the form/modal
-                        const editForm = this.closest('.edit-form');
-                        if (editForm) {
-                            editForm.classList.remove('active');
-                        } else {
-                            document.getElementById('editModal').classList.remove('active');
-                        }
-                        
-                        alert(data.message);
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while updating the profile');
-                });
-            });
+                // Show success message
+                alert(data.message);
+            } else {
+                // Show error message
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the profile');
         });
     });
-
-    </script>
+});
+</script>
 </body>
 </html>
+<!-- No PHP update logic should be here; profile updates are handled by update_profile.php -->

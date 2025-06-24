@@ -19,7 +19,7 @@ return [
     ],
     '/profile/update' => [
         'controller' => 'UserController',
-        'action' => 'updateProfile',
+        'action' => 'update_Profile',
         'methods' => ['POST']
     ],
     
