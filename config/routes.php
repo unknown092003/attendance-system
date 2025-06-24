@@ -10,6 +10,18 @@ return [
     '/admin-login' => ['controller' => 'AuthController', 'action' => 'showAdminLoginForm'],
     '/admin-auth' => ['controller' => 'AuthController', 'action' => 'adminLogin'],
     '/logout' => ['controller' => 'AuthController', 'action' => 'logout'],
+
+    // Profile routes
+    '/profile' => [
+        'controller' => 'UserController',
+        'action' => 'profile',
+        'methods' => ['GET']
+    ],
+    '/profile/update' => [
+        'controller' => 'UserController',
+        'action' => 'updateProfile',
+        'methods' => ['POST']
+    ],
     
     // User routes
     '/home' => ['controller' => 'AttendanceController', 'action' => 'showHome', 'auth' => true],

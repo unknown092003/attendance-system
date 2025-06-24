@@ -13,6 +13,7 @@
             <h1>Attendance System</h1>
             <div class="user-info">
                 <span>Welcome, <?php echo htmlspecialchars($data['user']['full_name'] ?? 'User'); ?></span>
+                <a href="/attendance-system/profile" class="profile-btn">Profile</a>
                 <a href="/attendance-system/logout" class="logout-btn">Logout</a>
             </div>
         </header>
