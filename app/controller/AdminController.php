@@ -309,4 +309,24 @@ class AdminController {
         }
         exit();
     }
+    /**
+     * Show admin profile view
+     */
+    public function profile() {
+        $student_id = $_GET['student_id'] ?? null;
+        
+        if (!$student_id) {
+            header("Location: /attendance-system/admin/journals");
+            exit();
+        }
+
+        $student = $this->userModel->getUserById($student_id);
+        
+        if (!$student) {
+            header("HTTP/1.0 404 Not Found");
+            exit("Student not found");
+        }
+
+        require_once APP_PATH . '/view/admin/profile.php';
+    }
 }

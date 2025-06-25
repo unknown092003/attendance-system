@@ -46,6 +46,7 @@ return [
     '/admin/reports' => ['controller' => 'AdminController', 'action' => 'reports', 'admin' => true],
     '/admin/journals' => ['controller' => 'AdminController', 'action' => 'viewJournals', 'admin' => true],
     '/admin/special-attendance' => ['controller' => 'AdminController', 'action' => 'specialAttendance', 'admin' => true],
+    '/admin/profile' => ['controller' => 'AdminController', 'action' => 'profile', 'admin' => true],
 ];
 
 
