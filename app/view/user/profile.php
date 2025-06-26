@@ -429,7 +429,9 @@ function format_date($dateString) {
                                         // Render month navigation buttons
                                         foreach ($months as $month) {
                                             $isActive = ($month === $selectedMonth);
-                                            $url = '?month=' . urlencode($month);
+                                            $queryParams = $_GET;
+                                            $queryParams['month'] = $month;
+                                            $url = '?' . http_build_query($queryParams);
                                             echo '<a href="' . htmlspecialchars($url) . '" class="dtr-month-btn' . ($isActive ? ' active' : '') . '" style="padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; background: ' . ($isActive ? 'var(--accent, #007bff)' : '#f0f0f0') . '; color: ' . ($isActive ? '#fff' : '#333') . '; font-weight: ' . ($isActive ? 'bold' : 'normal') . '; transition: background 0.2s;">' . format_month($month) . '</a>';
                                         }
                                         ?>
