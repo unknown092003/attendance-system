@@ -175,8 +175,20 @@ class AttendanceController {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = json_decode(file_get_contents('php://input'), true);
                 $journal = $data['journal'] ?? '';
+                $isEdit = $data['isEdit'] ?? false;
                 
-                $success = $this->attendanceModel->endDay($userId, $journal);
+                try {
+                    if ($isEdit) {
+                        // Update existing journal without modifying attendance records
+                        $success = $this->attendanceModel->updateJournal($userId, date('Y-m-d'), $journal);
+                    } else {
+                        $success = $this->attendanceModel->endDay($userId, $journal);
+                    }
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'error' => 'Server error: ' . $e->getMessage()]);
+                    exit();
+                }
                 
                 // Set a permanent session flag to indicate day has ended
                 if ($success) {
@@ -190,7 +202,12 @@ class AttendanceController {
                 }
                 
                 header('Content-Type: application/json');
-                echo json_encode(['success' => $success]);
+                if ($success) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'Failed to update journal']);
+                }
                 exit();
             }
         }
@@ -223,8 +240,9 @@ class AttendanceController {
      * Get timer state for client-side timer
      */
     public function getTimerState() {
-        $userId = Session::get('user_id');
-        $dayEnded = Session::get('day_ended');
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM daily_journals WHERE user_id = ? AND date = CURDATE()");
+        $stmt->execute([$userId]);
+        $dayEnded = $stmt->fetchColumn() > 0;
         
         $activeAttendance = $this->attendanceModel->getActiveAttendance($userId);
         $accumulatedTime = $this->attendanceModel->getTotalAccumulatedTimeForToday($userId, $dayEnded);

@@ -132,6 +132,7 @@
                 <div class="journal-content">
                     <?php echo nl2br(htmlspecialchars($data['journal']['journal_text'])); ?>
                 </div>
+                <button id="edit-journal-btn" class="btn primary">Edit Journal</button>
             </div>
             <?php endif; ?>
             
@@ -195,8 +196,8 @@
     <div id="journal-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>End Your Day</h2>
-            <p>Please write a brief journal about what you accomplished today before ending your day.</p>
+            <h2 id="journal-modal-title">End Your Day</h2>
+            <p id="journal-modal-description">Please write a brief journal about what you accomplished today before ending your day.</p>
             
             <div class="form-group">
                 <label for="journal-text">Today's Journal</label>
@@ -205,7 +206,7 @@
             
             <div class="btn-container">
                 <button id="cancel-journal" class="btn secondary">Cancel</button>
-                <button id="submit-journal" class="btn primary">Submit & End Day</button>
+                <button id="submit-journal" class="btn primary">Submit</button>
             </div>
         </div>
     </div>

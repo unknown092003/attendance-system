@@ -21,8 +21,13 @@ class AttendanceModel {
         // Use server's time directly from database to ensure consistency
         if ($type === 'in') {
             $stmt = $this->db->prepare("
-                INSERT INTO attendance (user_id, time_in) 
-                VALUES (?, NOW())
+                INSERT INTO attendance (user_id, time_in)
+                VALUES (?,
+                    CASE
+                        WHEN HOUR(NOW()) < 8 THEN CONCAT(CURDATE(), ' 08:00:00')
+                        ELSE NOW()
+                    END
+                )
             ");
             $success = $stmt->execute([$userId]);
             
@@ -119,13 +124,18 @@ class AttendanceModel {
             $stmt->execute([$userId, $today]);
             $existingJournal = $stmt->fetch();
             
-            // Close any open attendance records for today
-            $stmt = $this->db->prepare("
-                UPDATE attendance 
-                SET time_out = ? 
-                WHERE user_id = ? AND DATE(time_in) = ? AND time_out IS NULL
-            ");
-            $stmt->execute([$now, $userId, $today]);
+            // Only close attendance records if not in edit mode
+            if (!$isEdit) {
+                $stmt = $this->db->prepare("
+                    UPDATE attendance
+                    SET time_out = CASE
+                        WHEN HOUR(NOW()) < 19 THEN CONCAT(CURDATE(), ' 17:00:00')
+                        ELSE NOW()
+                    END
+                    WHERE user_id = ? AND DATE(time_in) = ? AND time_out IS NULL
+                ");
+                $stmt->execute([$userId, $today]);
+            }
             
             // Handle journal entry
             if ($existingJournal) {
@@ -241,8 +251,8 @@ class AttendanceModel {
         
         // Get all attendance records since the last end day
         $stmt = $this->db->prepare("
-            SELECT 
-                SUM(TIMESTAMPDIFF(SECOND, time_in, IFNULL(time_out, NOW()))) as total_seconds,
+            SELECT
+                SUM(GREATEST(TIMESTAMPDIFF(SECOND, time_in, IFNULL(time_out, NOW())), 0)) as total_seconds,
                 MIN(time_in) as first_time_in,
                 MAX(IFNULL(time_out, NOW())) as latest_activity
             FROM attendance 
