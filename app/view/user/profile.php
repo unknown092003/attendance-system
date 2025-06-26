@@ -21,16 +21,30 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 
-    // Check if user is logged in
-    if (!isset($_SESSION['user_id'])) {
+    // Allow access for logged in users or admins
+    $isUser = isset($_SESSION['user_id']);
+    $isAdmin = isset($_SESSION['admin_id']) && ($_SESSION['role'] ?? '') === 'admin';
+    
+    if (!$isUser && !$isAdmin) {
         die("Please login to view this page");
     }
 
     // Determine which user profile to show
-    $view_user_id = $_SESSION['user_id'];
-    // Fetch logged-in user info
+    $view_user_id = $_SESSION['user_id'] ?? null;
+    
+    // If admin viewing another profile, get user ID from request
+    if (($_SESSION['role'] ?? '') === 'admin' && isset($_GET['student_id'])) {
+        $view_user_id = (int)$_GET['student_id'];
+    }
+    
+    // Validate user ID exists
+    if (!$view_user_id) {
+        die("Invalid user request");
+    }
+    
+    // Fetch user info
     $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
+    $stmt->execute([$view_user_id]);
     $logged_in_user = $stmt->fetch();
     if (!$logged_in_user) {
         die("User not found");
@@ -48,6 +62,13 @@ try {
     }
 } catch (\PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
+}
+
+// Helper function to get the correct user id for queries
+function get_profile_user_id($user) {
+    if (isset($user['user_id'])) return $user['user_id'];
+    if (isset($user['id'])) return $user['id'];
+    return $_SESSION['user_id'] ?? null;
 }
 
 // Helper for initials
@@ -390,7 +411,7 @@ function format_date($dateString) {
                                         <?php
                                         // Get all months with attendance for this user
                                         $stmt = $pdo->prepare("SELECT DISTINCT DATE_FORMAT(time_in, '%Y-%m') as month FROM attendance WHERE user_id = ? ORDER BY month DESC");
-                                        $stmt->execute([$_SESSION['user_id']]);
+                                        $stmt->execute([get_profile_user_id($user)]);
                                         $months = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
                                         // Get selected month from query param, default to current month if not set or invalid
@@ -443,7 +464,7 @@ function format_date($dateString) {
                                                                       WHERE user_id = ? 
                                                                       AND DATE(time_in) BETWEEN ? AND ?
                                                                       ORDER BY time_in ASC");
-                                                $stmt->execute([$_SESSION['user_id'], $firstDay, $lastDay]);
+                                                $stmt->execute([get_profile_user_id($user), $firstDay, $lastDay]);
                                                 $records = $stmt->fetchAll();
 
                                                 // Debug: Output the raw records we fetched
@@ -524,13 +545,13 @@ function format_date($dateString) {
                                 // --- Journal Data Fetching Logic ---
                                 // Get the first journal date for this user
                                 $stmt = $pdo->prepare("SELECT MIN(date) as first_date FROM daily_journals WHERE user_id = ?");
-                                $stmt->execute([$_SESSION['user_id']]);
+                                $stmt->execute([get_profile_user_id($user)]);
                                 $firstJournal = $stmt->fetch();
                                 $firstDayDate = $firstJournal && $firstJournal['first_date'] ? $firstJournal['first_date'] : null;
                                             
                                 // Get all journals for this user
                                 $stmt = $pdo->prepare("SELECT * FROM daily_journals WHERE user_id = ? ORDER BY date ASC");
-                                $stmt->execute([$_SESSION['user_id']]);
+                                $stmt->execute([get_profile_user_id($user)]);
                                 $allJournals = $stmt->fetchAll();
                                             
                                 // Build a map: date => journal
@@ -559,7 +580,7 @@ function format_date($dateString) {
                                 <div id="journal-panel" role="tabpanel" aria-labelledby="journal-tab" hidden class="tab-panel">
                                     <div class="journal-header">
                                         <h2 style="color: var(--accent);">My Journal</h2>
-                                        <a id="show-all-journals" class="btn" href="/attendance-system/app/view/user/all_journals.php?user_id=<?= $_SESSION['user_id'] ?>" target="_blank" rel="noopener">Show All Journals</a>
+                                        <a id="show-all-journals" class="btn" href="/attendance-system/app/view/user/all_journals.php?user_id=<?= get_profile_user_id($user) ?>" target="_blank" rel="noopener">Show All Journals</a>
                                     </div>
 
                                     <div class="pagination-controls">
@@ -661,7 +682,7 @@ function format_date($dateString) {
                                                             });
                                                         
                                                             function fetchAllJournals(sortOrder) {
-                                                                fetch(`app/view/user/fetch_journals.php?user_id=<?= $_SESSION['user_id'] ?>&sort=${sortOrder}`)
+                                                                fetch(`app/view/user/fetch_journals.php?user_id=<?= get_profile_user_id($user) ?>&sort=${sortOrder}`)
                                                                     .then(response => response.json())
                                                                     .then(data => {
                                                                         const container = document.getElementById('all-journals-container');

@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Responsive viewport settings -->
     <title>Student Journals - Attendance System</title> <!-- Page title shown in browser tab -->
     
-    <!-- CSS stylesheets -->
     <link rel="stylesheet" href="/attendance-system/assets/css/style.css"> <!-- Main stylesheet -->
     <link rel="stylesheet" href="/attendance-system/assets/css/admin.css"> <!-- Admin-specific styles -->
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <!-- Main page container -->
@@ -162,9 +163,11 @@
                                         <td><?php echo htmlspecialchars($student['role']); ?></td>
                                         <!-- Action button -->
                                         <td>
-                                            <a href="/attendance-system/admin/journals?student_id=<?php echo $student['id']; ?>&date=<?php echo $data['date']; ?>" class="btn-sm">
-                                                <!-- Dynamic button text based on journal existence -->
+                                            <a href="/attendance-system/admin/journals?student_id=<?php echo $student['id']; ?>&date=<?php echo $data['date']; ?>" class="btn-sm mr-2">
                                                 <?php echo $student['has_journal'] ? 'View Journal & Attendance' : 'View Attendance'; ?>
+                                            </a>
+                                            <a href="/attendance-system/admin/profile?student_id=<?php echo $student['id']; ?>" class="btn-sm btn-info">
+                                                View Profile
                                             </a>
                                         </td>
                                     </tr>

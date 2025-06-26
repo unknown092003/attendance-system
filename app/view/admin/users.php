@@ -9,6 +9,8 @@
     <!-- CSS stylesheets -->
     <link rel="stylesheet" href="/attendance-system/assets/css/style.css"> <!-- Main stylesheet -->
     <link rel="stylesheet" href="/attendance-system/assets/css/admin.css"> <!-- Admin-specific styles -->
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <!-- Main page container -->

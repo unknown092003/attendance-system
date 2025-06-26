@@ -117,6 +117,8 @@ class AuthController {
             
             if ($admin) {
                 Session::set('admin_id', $admin['id']);
+                Session::set('role', 'admin');  // Explicitly set admin role
+                Session::set('role', 'admin');
                 Session::set('admin_name', $admin['firstname'] . ' ' . $admin['lastname']);
                 Session::set('admin_username', $admin['username']);
                 

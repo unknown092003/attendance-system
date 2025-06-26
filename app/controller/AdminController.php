@@ -327,6 +327,20 @@ class AdminController {
             exit("Student not found");
         }
 
-        require_once APP_PATH . '/view/admin/profile.php';
+        // Generate CSRF token for view compatibility
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        
+        // Ensure 'user_id' key exists for view compatibility
+        $user = $student;
+        if (!isset($user['user_id']) && isset($user['id'])) {
+            $user['user_id'] = $user['id'];
+        }
+        // Also ensure supervisor_notes is available
+        $supervisor_notes = [];
+        if (!empty($user['supervisor_notes'])) {
+            $supervisor_notes = json_decode($user['supervisor_notes'], true);
+        }
+        // Load user profile view with admin context
+        require_once APP_PATH . '/view/user/profile.php';
     }
 }

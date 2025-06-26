@@ -18,12 +18,23 @@ try {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    if (!isset($_SESSION['user_id'])) {
+    $isUser = isset($_SESSION['user_id']);
+    $isAdmin = isset($_SESSION['admin_id']) && ($_SESSION['role'] ?? '') === 'admin';
+    
+    // Determine which user journals to show
+    $view_user_id = $_SESSION['user_id'] ?? null;
+    if ($isAdmin && isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
+        $view_user_id = (int)$_GET['user_id'];
+    }
+    if (!$isUser && !$isAdmin) {
         die("Please login to view this page");
+    }
+    if (!$view_user_id) {
+        die("Invalid user request");
     }
     // Get user data
     $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
+    $stmt->execute([$view_user_id]);
     $user = $stmt->fetch();
     if (!$user) {
         die("User not found");
@@ -34,7 +45,7 @@ try {
 
 // Fetch journal entries for the user
 $stmt = $pdo->prepare("SELECT * FROM daily_journals WHERE user_id = ? ORDER BY date ASC");
-$stmt->execute([$_SESSION['user_id']]);
+$stmt->execute([$view_user_id]);
 $journals = $stmt->fetchAll();
 
 // Determine the first date with an entry, if any
@@ -43,7 +54,7 @@ $firstDate = !empty($journals) ? new DateTime($journals[0]['date']) : null;
 // Calculate total completed hours from attendance table
 $total_hours = 0;
 $stmt = $pdo->prepare("SELECT time_in, time_out FROM attendance WHERE user_id = ? AND time_in IS NOT NULL AND time_out IS NOT NULL");
-$stmt->execute([$_SESSION['user_id']]);
+$stmt->execute([$view_user_id]);
 $attendance_records = $stmt->fetchAll();
 foreach ($attendance_records as $rec) {
     $in = new DateTime($rec['time_in']);

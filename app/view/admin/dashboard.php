@@ -34,31 +34,34 @@
             
             <!-- Dashboard statistics cards -->
             <div class="dashboard-stats">
-                <!-- Total students card -->
+                <!-- Total Interns card -->
                 <div class="stat-card">
-                    <h3>Total Students</h3>
+                    <h3>Active Interns</h3>
                     <div class="stat-value"><?php echo $data['userCount']; ?></div>
                 </div>
                 <!-- Today's attendance card -->
                 <div class="stat-card">
-                    <h3>Students Present Today</h3>
+                    <h3>Present Intern</h3>
                     <div class="stat-value"><?php echo $data['todayAttendance']; ?></div>
                 </div>
             </div>
             
             <!-- Today's attendance section -->
-            <div class="dashboard-section">
-                <h2>Today's Student Attendance</h2>
+
+                <h2>Today's Intern Attendance</h2>
                 <!-- Special attendance button -->
                 <div class="action-buttons">
                     <button id="special-attendance-btn" class="btn primary">Record Special Attendance</button>
                 </div>
+             <div class="table-container">
+                           
                 
                 <?php if (empty($data['studentsToday'])): ?>
                     <!-- Message when no attendance records -->
-                    <p>No students have checked in today.</p>
+                    <p>No Interns have checked in today.</p>
                 <?php else: ?>
                     <!-- Attendance table -->
+                     <div class="dashboard-section">
                     <table>
                         <thead>
                             <tr>
@@ -72,7 +75,7 @@
                             <!-- Loop through today's attendance records -->
                             <?php foreach ($data['studentsToday'] as $student): ?>
                                 <tr>
-                                    <!-- Student name -->
+                                    <!-- Interns name -->
                                     <td><?php echo htmlspecialchars($student['full_name'] ?? 'Unknown'); ?></td>
                                     <!-- Time in (formatted) -->
                                     <td>
@@ -98,8 +101,11 @@
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                <?php endif; ?>
-            </div>
+                </div>
+
+                <?php endif; ?>                 
+             </div>
+
             
             <!-- Special Attendance Modal (hidden by default) -->
             <div id="special-attendance-modal" class="modal">
@@ -107,7 +113,7 @@
                     <!-- Close button -->
                     <span class="close">&times;</span>
                     <h2>Record Special Attendance</h2>
-                    <p>Select students who should receive special attendance (8:00 AM - 4:00 PM):</p>
+                    <p>Select Interns who should receive special attendance (8:00 AM - 4:00 PM):</p>
                     
                     <!-- Result message container -->
                     <div id="special-attendance-result" class="alert" style="display: none;"></div>
@@ -181,54 +187,58 @@
             </div>
             
             <!-- Internship progress section -->
-            <div class="dashboard-section">
-                <h2>Internship Progress</h2>
-                <?php if (empty($data['internProgress'])): ?>
-                    <p>No interns found with required hours.</p>
-                <?php else: ?>
-                    <!-- Internship progress table -->
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Required Hours</th>
-                                <th>Completed Hours</th>
-                                <th>Remaining Hours</th>
-                                <th>Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+             <h2>Internship Progress</h2>
+             <div class="table-container">
+                        <div class="dashboard-section">
+                                
+                                <?php if (empty($data['internProgress'])): ?>
+                                    <p>No interns found with required hours.</p>
+                                <?php else: ?>
+                                    <!-- Internship progress table -->
+                              <table>
+                                  <thead>
+                                      <tr>
+                                          <th>Name</th>
+                                          <th>Required Hours</th>
+                                          <th>Completed Hours</th>
+                                          <th>Remaining Hours</th>
+                                          <th>Progress</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
                             <!-- Loop through intern progress data -->
-                            <?php foreach ($data['internProgress'] as $intern): 
-                                $completedHours = (float)$intern['completed_hours'];
-                                $requiredHours = (float)$intern['required_hours'];
-                                $remainingHours = max(0, $requiredHours - $completedHours);
-                                $percentage = $requiredHours > 0 ? min(100, ($completedHours / $requiredHours) * 100) : 0;
-                            ?>
-                                <tr>
-                                    <!-- Intern details -->
-                                    <td><?php echo htmlspecialchars($intern['full_name']); ?></td>
-                                    <td><?php echo number_format($requiredHours, 2); ?> hrs</td>
-                                    <td><?php echo number_format($completedHours, 2); ?> hrs</td>
-                                    <td><?php echo number_format($remainingHours, 2); ?> hrs</td>
-                                    <!-- Progress bar -->
-                                    <td>
-                                        <div class="progress-bar">
-                                            <div class="progress" style="width: <?php echo $percentage; ?>%"></div>
-                                            <span><?php echo number_format($percentage, 1); ?>%</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
-            </div>
+                                    <?php foreach ($data['internProgress'] as $intern): 
+                                        $completedHours = (float)$intern['completed_hours'];
+                                        $requiredHours = (float)$intern['required_hours'];
+                                        $remainingHours = max(0, $requiredHours - $completedHours);
+                                        $percentage = $requiredHours > 0 ? min(100, ($completedHours / $requiredHours) * 100) : 0;
+                                    ?>
+                                        <tr>
+                                            <!-- Intern details -->
+                                            <td><?php echo htmlspecialchars($intern['full_name']); ?></td>
+                                            <td><?php echo number_format($requiredHours, 2); ?> hrs</td>
+                                            <td><?php echo number_format($completedHours, 2); ?> hrs / <?php echo round($completedHours / 8, 2); ?> days</td>
+                                            <td><?php echo number_format($remainingHours, 2); ?> hrs / <?php echo round($remainingHours / 8); ?> days</td>
+                                            <!-- Progress bar -->
+                                            <td>
+                                                <div class="progress-bar">
+                                                    <div class="progress" style="width: <?php echo $percentage; ?>%"></div>
+                                                    <span><?php echo number_format($percentage, 1); ?>%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                            <?php endif; ?>
+                        </div>
+             </div>
+            
         </main>
         
         <!-- Page footer -->
         <footer>
-            <p>&copy; <?php echo date('Y'); ?> Attendance System</p>
+            <p>&copy; <?php echo date('Y'); ?> erroljohnpardillo@gmail.com </p>
         </footer>
     </div>
     

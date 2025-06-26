@@ -43,10 +43,12 @@ class Router {
                 return;
             }
             
-            // Check role requirement
-            if (isset($route['role']) && $route['role'] !== Session::get('role')) {
-                $this->redirect('/home');
-                return;
+            // Check admin requirement
+            if (isset($route['admin']) && $route['admin']) {
+                if (!Session::get('admin_id') || Session::get('role') !== 'admin') {
+                    $this->redirect('/admin-login');
+                    return;
+                }
             }
             
             // Dispatch to controller
