@@ -45,7 +45,7 @@ try {
 
     // Update user data
     $stmt = $pdo->prepare("UPDATE users SET 
-        full_name = ?, email = ?, phone = ?, university = ?, college = ?, student_number = ?, 
+        full_name = ?, email = ?, phone = ?, university = ?, college = ?,
         program = ?, year_level = ?, internship_start = ?, internship_end = ?, required_hours = ?, 
         supervisor_notes = ?
         WHERE id = ?
@@ -56,7 +56,6 @@ try {
         $_POST['phone'] ?? '',
         $_POST['university'] ?? '',
         $_POST['college'] ?? '',
-        $_POST['student_number'] ?? '',
         $_POST['program'] ?? '',
         $_POST['year_level'] ?? '',
         $_POST['internship_start'] ?? null,

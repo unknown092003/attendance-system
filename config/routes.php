@@ -19,13 +19,12 @@ return [
     ],
     '/profile/update' => [
         'controller' => 'UserController',
-        'action' => 'update_Profile',
+        'action' => 'updateProfile',
         'methods' => ['POST']
     ],
     
     // User routes
     '/home' => ['controller' => 'AttendanceController', 'action' => 'showHome', 'auth' => true],
-    '/profile' => ['controller' => 'UserController', 'action' => 'profile', 'auth' => true],
     '/time-in' => ['controller' => 'AttendanceController', 'action' => 'timeIn', 'auth' => true],
     '/time-out' => ['controller' => 'AttendanceController', 'action' => 'timeOut', 'auth' => true],
     '/end-day' => ['controller' => 'AttendanceController', 'action' => 'endDay', 'auth' => true],

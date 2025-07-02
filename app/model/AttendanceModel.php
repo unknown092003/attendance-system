@@ -109,7 +109,7 @@ class AttendanceModel {
         return $stmt->fetch();
     }
     
-    public function endDay($userId, $journal) {
+    public function endDay($userId, $journal, $isEdit = false) {
         $now = date('Y-m-d H:i:s');
         $today = date('Y-m-d');
         
@@ -124,8 +124,8 @@ class AttendanceModel {
             $stmt->execute([$userId, $today]);
             $existingJournal = $stmt->fetch();
             
-            // Only close attendance records if not in edit mode
-            if (!$isEdit) {
+            // Close attendance records only for new journal entries
+            if (!$existingJournal) {
                 $stmt = $this->db->prepare("
                     UPDATE attendance
                     SET time_out = CASE

@@ -180,9 +180,9 @@ class AttendanceController {
                 try {
                     if ($isEdit) {
                         // Update existing journal without modifying attendance records
-                        $success = $this->attendanceModel->updateJournal($userId, date('Y-m-d'), $journal);
+                        $success = $this->attendanceModel->endDay($userId, $journal, true);
                     } else {
-                        $success = $this->attendanceModel->endDay($userId, $journal);
+                        $success = $this->attendanceModel->endDay($userId, $journal, false);
                     }
                 } catch (Exception $e) {
                     http_response_code(500);
@@ -191,7 +191,7 @@ class AttendanceController {
                 }
                 
                 // Set a permanent session flag to indicate day has ended
-                if ($success) {
+                if ($success && !$isEdit) {
                     Session::set('day_ended', true);
                     // Store in session that will persist until next time-in
                     $_SESSION['attendance_status'] = 'ended';
@@ -216,7 +216,7 @@ class AttendanceController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $journal = $_POST['journal'] ?? '';
             
-            $success = $this->attendanceModel->endDay($userId, $journal);
+            $success = $this->attendanceModel->endDay($userId, $journal, false);
             
             if ($success) {
                 // Set a permanent session flag to indicate day has ended

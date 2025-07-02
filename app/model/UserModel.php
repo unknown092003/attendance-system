@@ -49,17 +49,38 @@ class UserModel {
      * Update user
      */
     public function updateUser($id, $data) {
+        // Define allowed fields for security
+        $allowedFields = [
+            'full_name', 'email', 'phone', 'university', 'college',
+            'program', 'year_level', 'internship_start', 'internship_end',
+            'required_hours', 'supervisor', 'address', 'moa', 'status', 'avatar'
+        ];
+        
         $fields = [];
         $values = [];
         
         foreach ($data as $field => $value) {
+            // Only update allowed fields
+            if (!in_array($field, $allowedFields)) {
+                continue;
+            }
+            
             // Special handling for password
             if ($field === 'password' && !empty($value)) {
                 $value = password_hash($value, PASSWORD_DEFAULT);
             }
             
+            // Handle boolean fields
+            if ($field === 'moa') {
+                $value = (int)$value;
+            }
+            
             $fields[] = "$field = ?";
             $values[] = $value;
+        }
+        
+        if (empty($fields)) {
+            return false;
         }
         
         // Add ID to values array

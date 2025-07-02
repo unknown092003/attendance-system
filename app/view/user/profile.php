@@ -193,6 +193,16 @@ function format_date($dateString) {
             font-size: 1rem;
         }
         
+        .form-text {
+            font-size: 0.875rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        input[type="file"].form-control {
+            padding: 0.5rem;
+        }
+        
         /* PROFILE EDIT BUTTON */
         .profile-edit-btn {
             position: absolute;
@@ -287,8 +297,8 @@ function format_date($dateString) {
 
                     <!-- User avatar -->
                     <div class="profile-avatar">
-                        <?php if (!empty($user['avatar'])): ?>
-                            <img src="assets\img\ocd.png" alt="Avatar" style="width:100%;height:100%;border-radius:50%;">
+                        <?php if (!empty($user['avatar']) && $user['avatar'] !== 'default.jpg'): ?>
+                            <img src="/attendance-system/assets/uploads/avatars/<?= htmlspecialchars($user['avatar']) ?>" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
                         <?php else: ?>
                             <?= get_initials($user['full_name']) ?>
                         <?php endif; ?>
@@ -311,84 +321,91 @@ function format_date($dateString) {
                         
                 <!-- Main profile details section with two columns -->
                 <section class="profile-details">
-                    <!-- Left column - Student information -->
-                    <div class="details-column">
-                        <!-- School information group -->
-                        <div class="detail-group">
-                            <span class="detail-label">Student Information</span>
-                            <span class="detail-value" id="profile-school">
-                                <?= htmlspecialchars($user['university'] ?: 'Not set') ?>
-                                <small><?= htmlspecialchars($user['college'] ?: 'Not set') ?></small>
-                            </span>
-                        </div>
-                        
-                        <!-- Student ID group -->
-                        <div class="detail-group">
-                            <span class="detail-label">Student ID</span>
-                            <span class="detail-value" id="profile-id">
-                                <?= htmlspecialchars($user['student_number'] ?: 'Not set') ?>
-                            </span>
-                        </div>
-                        
-                        <!-- Program information group -->
-                        <div class="detail-group">
-                            <span class="detail-label">Program</span>
-                            <span class="detail-value">
-                                <?= htmlspecialchars($user['program'] ?: 'Not set') ?>
-                                <small>Year <?= htmlspecialchars($user['year_level'] ?: 'Not set') ?></small>
-                            </span>
-                        </div>
-                    </div>
-                        
-                    <!-- Right column - Contact and internship info -->
-                    <div class="details-column">
-                        <!-- Contact information group -->
-                        <div class="detail-group">
-                            <span class="detail-label">Contact Details</span>
-                            <span class="detail-value" id="profile-contact">
-                                <?= htmlspecialchars($user['phone'] ?: 'Not set') ?>
-                                <small><?= htmlspecialchars($user['email'] ?: 'Not set') ?></small>
-                            </span>
-                        </div>
-                        
-                        <!-- Internship period group -->
-                        <div class="detail-group">
-                            <span class="detail-label">Internship Period</span>
-                            <span class="detail-value" id="profile-dates">
-                                <?php
-                                $start = $user['internship_start'] ? format_date($user['internship_start']) : 'Not set';
-                                $end = $user['internship_end'] ? format_date($user['internship_end']) : 'Not set';
-                                echo "$start to $end";
-                                ?>
-                                <small>
-                                    <?php
-                                    if ($user['internship_start'] && $user['internship_end']) {
-                                        $startDate = new DateTime($user['internship_start']);
-                                        $endDate = new DateTime($user['internship_end']);
-                                        $interval = $startDate->diff($endDate);
-                                        $weeks = floor($interval->days / 7);
-                                        echo "($weeks weeks, " . htmlspecialchars($user['required_hours'] ?: 0) . " required hours)";
-                                    } else {
-                                        echo "(Duration not set)";
-                                    }
-                                    ?>
-                                </small>
-                            </span>
-                        </div>
-                                
-                        <!-- Supervisor information group -->
-                        <div class="detail-group">
-                            <span class="detail-label">Supervisor</span>
-                            <span class="detail-value" id="profile-supervisor">
-                                <?php
-                                $supervisor_notes = json_decode($user['supervisor_notes'] ?? '', true);
-                                echo htmlspecialchars($supervisor_notes['name'] ?? 'Not assigned');
-                                ?>
-                                <small><?= htmlspecialchars($supervisor_notes['email'] ?? '') ?></small>
-                            </span>
-                        </div>
-                    </div>
-                </section>
+    <!-- Left column - Student information -->
+    <div class="details-column">
+        <!-- School information group -->
+        <div class="detail-group">
+            <span class="detail-label">School</span>
+            <span class="detail-value" id="profile-school">
+                <?= htmlspecialchars($user['university'] ?: 'Not set') ?>
+            </span>
+        </div>
+        
+        <!-- Course information group -->
+        <div class="detail-group">
+            <span class="detail-label">Course</span>
+            <span class="detail-value" id="profile-course">
+                <?= htmlspecialchars($user['program'] ?: 'Not set') ?>
+                <small>Year Level: <?= htmlspecialchars($user['college'] ?: 'Not set') ?></small>
+            </span>
+        </div>
+        
+        <!-- address information group -->
+        <div class="detail-group">
+            <span class="detail-label">Address</span>
+            <span class="detail-value" id="profile-address">
+                <?= htmlspecialchars($user['address'] ?: 'Not set') ?>
+            </span>
+        </div>
+    </div>
+    
+    <!-- Right column - Contact and internship info -->
+    <div class="details-column">
+        <!-- Contact information group -->
+        <div class="detail-group">
+            <span class="detail-label">Contact Details</span>
+            <span class="detail-value" id="profile-contact">
+                <?= htmlspecialchars($user['phone'] ?: 'Not set') ?>
+                <small><?= htmlspecialchars($user['email'] ?: 'Not set') ?></small>
+            </span>
+        </div>
+        
+        <!-- Internship period group -->
+        <div class="detail-group">
+            <span class="detail-label">Internship Period</span>
+            <span class="detail-value" id="profile-dates">
+                <?php
+                $start = $user['internship_start'] ? format_date($user['internship_start']) : 'Not set';
+                $end = $user['internship_end'] ? format_date($user['internship_end']) : 'Not set';
+                echo "$start to $end";
+                ?>
+                <small>
+                    <?php
+                    if ($user['internship_start'] && $user['internship_end']) {
+                        $startDate = new DateTime($user['internship_start']);
+                        $endDate = new DateTime($user['internship_end']);
+                        $interval = $startDate->diff($endDate);
+                        $weeks = floor($interval->days / 7);
+                        echo "($weeks weeks, " . htmlspecialchars($user['required_hours'] ?: 0) . " required hours)";
+                    } else {
+                        echo "(Duration not set)";
+                    }
+                    ?>
+                </small>
+            </span>
+        </div>
+                
+        <!-- Supervisor information group -->
+        <div class="detail-group">
+            <span class="detail-label">Supervisor</span>
+            <span class="detail-value" id="profile-supervisor">
+                <?= htmlspecialchars($user['supervisor'] ?: 'Not assigned') ?>
+            </span>
+        </div>
+        
+        <!-- MOA status group -->
+        <div class="detail-group">
+            <span class="detail-label">MOA Status</span>
+            <span class="detail-value" id="profile-moa">
+                <?php if (!empty($user['moa'] ?? 0)): ?>
+                    <i class="fas fa-check-circle" style="color: green;"></i> Signed
+                <?php else: ?>
+                    <i class="fas fa-times-circle" style="color: red;"></i> Not Signed
+                <?php endif; ?>
+            </span>
+        </div>
+    </div>
+</section>
                                 
                 <!-- Tab navigation for different profile sections -->
                 <nav class="tab-nav" role="tablist" data-active-tab="dtr">
@@ -736,108 +753,110 @@ function format_date($dateString) {
                     <button class="modal-close">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <form action="/attendance-system/app/view/user/update_profile.php" method="post" id="profileForm">
-                        <?php if (isset($_SESSION['csrf_token'])): ?>
-                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                        <?php endif; ?>
-                        <div class="form-columns">
-                            <!-- Left Column -->
-                            <div class="form-column">
-                                <!-- Personal Information -->
-                                <div class="form-group">
-                                    <label class="form-label">Full Name</label>
-                                    <input type="text" name="full_name" class="form-control" 
-                                           value="<?= htmlspecialchars($user['full_name'] ?? '') ?>" required>
-                                </div>
-
-                                <!-- Contact Information -->
-                                <div class="form-group">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" name="email" class="form-control" 
-                                           value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Phone</label>
-                                    <input type="tel" name="phone" class="form-control" 
-                                           value="<?= htmlspecialchars($user['phone'] ?? '') ?>">
-                                </div>
-
-                                <!-- Student Information -->
-                                <div class="form-group">
-                                    <label class="form-label">University</label>
-                                    <input type="text" name="university" class="form-control" 
-                                           value="<?= htmlspecialchars($user['university'] ?? '') ?>">
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">College/Faculty</label>
-                                    <input type="text" name="college" class="form-control" 
-                                           value="<?= htmlspecialchars($user['college'] ?? '') ?>">
-                                </div>
-                            </div>
-
-                            <!-- Right Column -->
-                            <div class="form-column">
-                                <!-- Academic Information -->
-                                <div class="form-group">
-                                    <label class="form-label">Student ID</label>
-                                    <input type="text" name="student_number" class="form-control" 
-                                           value="<?= htmlspecialchars($user['student_number'] ?? '') ?>">
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Program</label>
-                                    <input type="text" name="program" class="form-control" 
-                                           value="<?= htmlspecialchars($user['program'] ?? '') ?>">
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Year Level</label>
-                                    <input type="text" name="year_level" class="form-control" 
-                                           value="<?= htmlspecialchars($user['year_level'] ?? '') ?>">
-                                </div>
-
-                                <!-- Internship Information -->
-                                <div class="form-group">
-                                    <label class="form-label">Internship Start Date</label>
-                                    <input type="date" name="internship_start" class="form-control" 
-                                           value="<?= htmlspecialchars($user['internship_start'] ?? '') ?>">
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Internship End Date</label>
-                                    <input type="date" name="internship_end" class="form-control" 
-                                           value="<?= htmlspecialchars($user['internship_end'] ?? '') ?>">
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Required Hours</label>
-                                    <input type="number" name="required_hours" class="form-control" 
-                                           value="<?= htmlspecialchars($user['required_hours'] ?? '') ?>">
-                                </div>
-
-                                <!-- Supervisor Information -->
-                                <div class="form-group">
-                                    <label class="form-label">Supervisor Name</label>
-                                    <input type="text" name="supervisor_name" class="form-control" 
-                                           value="<?= htmlspecialchars($supervisor_notes['name'] ?? '') ?>">
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Supervisor Email</label>
-                                    <input type="email" name="supervisor_email" class="form-control" 
-                                           value="<?= htmlspecialchars($supervisor_notes['email'] ?? '') ?>">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline modal-close">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                        </div>
-                    </form>
+    <form action="/attendance-system/profile/update" method="post" id="profileForm" enctype="multipart/form-data">
+        <?php if (isset($_SESSION['csrf_token'])): ?>
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+        <?php endif; ?>
+        <div class="form-columns">
+            <!-- Left Column -->
+            <div class="form-column">
+                <!-- Avatar Upload -->
+                <div class="form-group">
+                    <label class="form-label">Profile Picture</label>
+                    <input type="file" name="avatar" class="form-control" accept="image/*">
+                    <small class="form-text">Current: <?= htmlspecialchars($user['avatar'] ?? 'default.jpg') ?></small>
                 </div>
+                
+                <!-- Personal Information -->
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="full_name" class="form-control" 
+                           value="<?= htmlspecialchars($user['full_name'] ?? '') ?>" required>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" 
+                           value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="tel" name="phone" class="form-control" 
+                           value="<?= htmlspecialchars($user['phone'] ?? '') ?>">
+                </div>
+
+                <!-- School Information -->
+                <div class="form-group">
+                    <label class="form-label">School</label>
+                    <input type="text" name="university" class="form-control" 
+                           value="<?= htmlspecialchars($user['university'] ?? '') ?>">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Year Level</label>
+                    <input type="text" name="college" class="form-control" 
+                           value="<?= htmlspecialchars($user['college'] ?? '') ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Program/Course</label>
+                    <input type="text" name="program" class="form-control" 
+                           value="<?= htmlspecialchars($user['program'] ?? '') ?>">
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="form-column">
+                <!-- Address Information -->
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input type="text" name="address" class="form-control" 
+                           value="<?= htmlspecialchars($user['address'] ?? '') ?>">
+                </div>
+
+                <!-- Internship Information -->
+                <div class="form-group">
+                    <label class="form-label">Internship Start Date</label>
+                    <input type="date" name="internship_start" class="form-control" 
+                           value="<?= htmlspecialchars($user['internship_start'] ?? '') ?>">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Internship End Date</label>
+                    <input type="date" name="internship_end" class="form-control" 
+                           value="<?= htmlspecialchars($user['internship_end'] ?? '') ?>">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Required Hours</label>
+                    <input type="number" name="required_hours" class="form-control" 
+                           value="<?= htmlspecialchars($user['required_hours'] ?? '') ?>">
+                </div>
+
+                <!-- Supervisor Information -->
+                <div class="form-group">
+                    <label class="form-label">Supervisor Name</label>
+                    <input type="text" name="supervisor" class="form-control"
+                           value="<?= htmlspecialchars($user['supervisor'] ?? '') ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">MOA Status</label>
+                    <select name="moa" class="form-control">
+                        <option value="1" <?= ($user['moa'] ?? 0) ? 'selected' : '' ?>>Signed</option>
+                        <option value="0" <?= !($user['moa'] ?? 0) ? 'selected' : '' ?>>Not Signed</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+</div>
             </div>
         </div>
 
@@ -997,76 +1016,78 @@ function format_date($dateString) {
              * Handles form submission for the profile edit form (AJAX)
              * Updates all profile data without page reload
              */
-            document.getElementById('profileForm').addEventListener('submit', function(e) {
-                e.preventDefault();
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-                const formData = new FormData(this);
-                formData.append('field', 'all'); // Indicate this is a full profile update
+    const formData = new FormData(this);
+    formData.append('field', 'all');
 
-                // Send data to server via fetch API
-                fetch('/attendance-system/app/view/user/update_profile.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(async response => {
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error('Network response was not ok: ' + errorText);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Update all displayed profile information
-                        document.querySelector('.profile-title').textContent = formData.get('full_name');
+    fetch('/attendance-system/profile/update', {
+        method: 'POST',
+        body: formData
+    })
+    .then(async response => {
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error('Network response was not ok: ' + errorText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Update all displayed profile information
+            document.querySelector('.profile-title').textContent = formData.get('full_name');
+            
+            // Update contact info
+            document.getElementById('profile-contact').innerHTML = 
+                `${formData.get('phone')}<small>${formData.get('email')}</small>`;
 
-                        // Update contact info
-                        document.getElementById('profile-contact').innerHTML = 
-                            `${formData.get('phone')}<small>${formData.get('email')}</small>`;
+            // Update school info
+            document.getElementById('profile-school').textContent = formData.get('university');
+            
+            // Update course info
+            document.getElementById('profile-course').innerHTML = 
+                `${formData.get('program')}<small>Year Level: ${formData.get('college')}</small>`;
+            
+            // Update address
+            document.getElementById('profile-address').textContent = formData.get('address');
 
-                        // Update university/college
-                        document.getElementById('profile-school').innerHTML = 
-                            `${formData.get('university')}<small>${formData.get('college')}</small>`;
+            // Update internship dates
+            const startDate = new Date(formData.get('internship_start'));
+            const endDate = new Date(formData.get('internship_end'));
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const weeks = Math.floor(diffDays / 7);
 
-                        // Update student ID
-                        document.getElementById('profile-id').textContent = formData.get('student_number');
+            document.getElementById('profile-dates').innerHTML = 
+                `${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} 
+                to 
+                ${endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                <small>(${weeks} weeks, ${formData.get('required_hours')} required hours)</small>`;
 
-                        // Update program/year level
-                        document.querySelector('.details-column .detail-group:nth-child(3) .detail-value').innerHTML = 
-                            `${formData.get('program')}<small>Year ${formData.get('year_level')}</small>`;
+            // Update supervisor
+            document.getElementById('profile-supervisor').textContent = formData.get('supervisor');
 
-                        // Update internship dates
-                        const startDate = new Date(formData.get('internship_start'));
-                        const endDate = new Date(formData.get('internship_end'));
-                        const diffTime = Math.abs(endDate - startDate);
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        const weeks = Math.floor(diffDays / 7);
+            // Update MOA status
+            const moaStatus = formData.get('moa') === '1' ? 
+                '<i class="fas fa-check-circle" style="color: green;"></i> Signed' : 
+                '<i class="fas fa-times-circle" style="color: red;"></i> Not Signed';
+            document.getElementById('profile-moa').innerHTML = moaStatus;
 
-                        document.getElementById('profile-dates').innerHTML = 
-                            `${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} 
-                            to 
-                            ${endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                            <small>(${weeks} weeks, ${formData.get('required_hours')} required hours)</small>`;
+            // Close the modal
+            editModal.classList.remove('active');
 
-                        // Update supervisor info
-                        document.getElementById('profile-supervisor').innerHTML = 
-                            `${formData.get('supervisor_name')}<small>${formData.get('supervisor_email')}</small>`;
-
-                        // Close the modal
-                        editModal.classList.remove('active');
-
-                        // Show success message
-                        alert(data.message);
-                    } else {
-                        // Show error message
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while updating the profile');
-                });
-            });
+            // Show success message
+            alert(data.message);
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the profile');
+    });
+});
         });
         </script>
 </body>
