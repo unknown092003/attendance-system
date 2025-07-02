@@ -53,7 +53,9 @@ class UserModel {
         $allowedFields = [
             'full_name', 'email', 'phone', 'university', 'college',
             'program', 'year_level', 'internship_start', 'internship_end',
-            'required_hours', 'supervisor', 'address', 'moa', 'status', 'avatar'
+            'required_hours', 'supervisor', 'address', 'moa', 'status', 'avatar',
+            'role', 'pin', 'university', 'college', 'program', 'year_level',
+            'internship_start', 'internship_end'
         ];
         
         $fields = [];

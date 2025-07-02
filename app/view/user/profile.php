@@ -757,6 +757,9 @@ function format_date($dateString) {
         <?php if (isset($_SESSION['csrf_token'])): ?>
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
         <?php endif; ?>
+        <?php if (($_SESSION['role'] ?? '') === 'admin' && isset($_GET['student_id'])): ?>
+            <input type="hidden" name="target_user_id" value="<?= htmlspecialchars($_GET['student_id']) ?>">
+        <?php endif; ?>
         <div class="form-columns">
             <!-- Left Column -->
             <div class="form-column">

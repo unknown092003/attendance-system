@@ -71,6 +71,9 @@
                                     </td>
                                     <!-- Action buttons -->
                                     <td>
+                                        <!-- View Profile link -->
+                                        <a href="/attendance-system/admin/profile?student_id=<?php echo $user['id']; ?>" class="btn-sm btn-info mr-2">View Profile</a>
+                                        
                                         <!-- Delete user form with confirmation dialog -->
                                         <form action="/attendance-system/admin/users/delete" method="post" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                             <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">

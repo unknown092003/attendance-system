@@ -10,13 +10,28 @@ class UserController {
     }
     
     public function profile() {
-        // Check if user is logged in
-        if (!isset($_SESSION['user_id'])) {
+        // Check if user is logged in (either regular user or admin)
+        $isUser = isset($_SESSION['user_id']);
+        $isAdmin = isset($_SESSION['admin_id']) && ($_SESSION['role'] ?? '') === 'admin';
+        
+        if (!$isUser && !$isAdmin) {
             header('Location: /login');
             exit;
         }
         
-        $userId = $_SESSION['user_id'];
+        // Determine which user profile to show
+        $userId = $_SESSION['user_id'] ?? null;
+        
+        // If admin is viewing another user's profile
+        if ($isAdmin && isset($_GET['student_id'])) {
+            $userId = (int)$_GET['student_id'];
+        }
+        
+        if (!$userId) {
+            header('Location: /login');
+            exit;
+        }
+        
         $user = $this->userModel->getUserById($userId);
         
         if (!$user) {
@@ -42,7 +57,19 @@ class UserController {
         include APP_PATH . '/view/admin/verify_users.php';
     }
 public function updateProfile() {
-        header('Content-Type: application/json');
+    header('Content-Type: application/json');
+    error_reporting(0); // Suppress PHP warnings/errors
+    ini_set('display_errors', 0);
+    error_reporting(0); // Suppress PHP warnings/errors
+    ini_set('display_errors', 0);
+    error_reporting(0); // Suppress PHP warnings/errors
+    ini_set('display_errors', 0);
+    error_reporting(0); // Suppress PHP warnings/errors
+    ini_set('display_errors', 0);
+    error_reporting(0); // Suppress PHP errors
+    ini_set('display_errors', 0);
+    error_reporting(0); // Suppress error display
+    ini_set('display_errors', 0);
         
         try {
             // Verify request method
@@ -55,8 +82,11 @@ public function updateProfile() {
                 throw new Exception('Invalid CSRF token', 403);
             }
 
-            // Verify authenticated user
-            if (!isset($_SESSION['user_id'])) {
+            // Verify authenticated user (either the profile owner or admin)
+            $userId = $_SESSION['user_id'] ?? null;
+            $isAdmin = isset($_SESSION['admin_id']) && ($_SESSION['role'] ?? '') === 'admin';
+            
+            if (!$userId && !$isAdmin) {
                 throw new Exception('Unauthorized access', 401);
             }
 
@@ -103,8 +133,18 @@ public function updateProfile() {
                 $userData['avatar'] = $avatarFileName;
             }
 
+            // Get target user ID (admin can update any user, regular user can only update themselves)
+            $targetUserId = $_SESSION['user_id']; // Default to current user
+            
+            // If admin is editing another user's profile
+            if ($isAdmin && isset($_POST['target_user_id'])) {
+                $targetUserId = (int)$_POST['target_user_id'];
+            } elseif ($isAdmin && isset($_GET['student_id'])) {
+                $targetUserId = (int)$_GET['student_id'];
+            }
+            
             // Update through model
-            $updated = $this->userModel->updateUser($_SESSION['user_id'], $userData);
+            $updated = $this->userModel->updateUser($targetUserId, $userData);
             
             if (!$updated) {
                 throw new Exception('Failed to update profile', 500);
@@ -115,7 +155,7 @@ public function updateProfile() {
             echo json_encode([
                 'success' => true,
                 'message' => 'Profile updated successfully',
-                'data' => $this->userModel->getUserById($_SESSION['user_id'])
+                'data' => $this->userModel->getUserById($targetUserId)
             ]);
             exit;
                 

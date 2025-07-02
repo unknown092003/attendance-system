@@ -309,6 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       // Submit the end-day request directly
+      console.log('Submitting end day with journal:', journal);
       fetch("/attendance-system/end-day", {
         method: "POST",
         headers: {

@@ -126,6 +126,7 @@ class AttendanceModel {
             
             // Close attendance records only for new journal entries
             if (!$existingJournal) {
+                // Auto time-out logic for records without time_out
                 $stmt = $this->db->prepare("
                     UPDATE attendance
                     SET time_out = CASE
@@ -135,6 +136,18 @@ class AttendanceModel {
                     WHERE user_id = ? AND DATE(time_in) = ? AND time_out IS NULL
                 ");
                 $stmt->execute([$userId, $today]);
+                
+                // Apply 5pm rule to existing time_out records if ending before 7pm
+                if (date('H') < 19) {
+                    $stmt = $this->db->prepare("
+                        UPDATE attendance
+                        SET time_out = CONCAT(CURDATE(), ' 17:00:00')
+                        WHERE user_id = ? AND DATE(time_in) = ? 
+                        AND time_out IS NOT NULL 
+                        AND TIME(time_out) > '17:00:00'
+                    ");
+                    $stmt->execute([$userId, $today]);
+                }
             }
             
             // Handle journal entry
