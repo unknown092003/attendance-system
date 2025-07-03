@@ -478,11 +478,11 @@ $total_days = $total_hours > 0 ? floor($total_hours / 8) : 0;
                 </tr>
                 <tr>
                     <td>Start Date:</td>
-                    <td><?= !empty($journals) ? htmlspecialchars($journals[0]['date']) : 'N/A' ?></td>
+                    <td><?= !empty($journals) ? date('F j, Y', strtotime($journals[0]['date'])) : 'N/A' ?></td>
                 </tr>
                 <tr>
                     <td>End Date:</td>
-                    <td><?= !empty($journals) ? htmlspecialchars(end($journals)['date']) : 'N/A' ?></td>
+                    <td><?= !empty($journals) ? date('F j, Y', strtotime(end($journals)['date'])) : 'N/A' ?></td>
                 </tr>
                 <tr>
                     <td>Total Completed Hours:</td>
@@ -631,7 +631,7 @@ $total_days = $total_hours > 0 ? floor($total_hours / 8) : 0;
                 <div class="journal-entry">
                     <div class="entry-header">
                         <span class="day-number">Day <?= htmlspecialchars($dayNumber) ?></span>
-                        <span class="entry-date"><?= htmlspecialchars($journal['date']) ?></span>
+                        <span class="entry-date"><?= date('F j, Y', strtotime($journal['date'])) ?></span>
                     </div>
                     
                     <div class="entry-content">

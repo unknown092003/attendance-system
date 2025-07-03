@@ -169,22 +169,31 @@ public function updateProfile() {
     }
     public function updateJournal() {
         header('Content-Type: application/json');
-        
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
             exit();
         }
-        
+
         $journalId = $_POST['journal_id'] ?? 0;
         $journalText = $_POST['journal_text'] ?? '';
-        $userId = $_SESSION['user_id'] ?? 0;
+        $sessionUserId = $_SESSION['user_id'] ?? 0;
+        $targetUserId = $_POST['user_id'] ?? $sessionUserId; // Get target user ID from POST, default to session user
+        
+        $isAdmin = isset($_SESSION['admin_id']);
 
-        if (!$journalId || !$userId) {
+        if (!$journalId || !$targetUserId) {
             echo json_encode(['success' => false, 'message' => 'Invalid data provided.']);
             exit();
         }
 
-        $success = $this->attendanceModel->updateJournal($journalId, $journalText, $userId);
+        // Authorize: either admin, or user editing their own journal
+        if (!$isAdmin && ($sessionUserId != $targetUserId)) {
+            echo json_encode(['success' => false, 'message' => 'You are not authorized to perform this action.']);
+            exit();
+        }
+
+        $success = $this->attendanceModel->updateJournal($journalId, $journalText, $targetUserId, $isAdmin);
 
         if ($success) {
             echo json_encode(['success' => true, 'message' => 'Journal updated successfully.']);

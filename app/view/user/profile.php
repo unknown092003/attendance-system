@@ -393,21 +393,57 @@ function format_date($dateString) {
                 $firstAttendance = $firstAttendanceStmt->fetchColumn();
                 $start = $firstAttendance ? format_date($firstAttendance) : 'Not set';
                 
-                // Calculate end date when required hours are completed
-                $hoursStmt = $pdo->prepare("SELECT SUM(hours_worked) as total_hours, MAX(time_out) as last_day FROM attendance WHERE user_id = ?");
+                // Calculate total completed hours and find completion date
+                $hoursStmt = $pdo->prepare("
+                    SELECT 
+                        SUM(TIMESTAMPDIFF(SECOND, time_in, time_out) / 3600) as total_hours,
+                        time_out,
+                        DATE(time_out) as completion_date
+                    FROM attendance 
+                    WHERE user_id = ? AND time_out IS NOT NULL
+                    ORDER BY time_out ASC
+                ");
                 $hoursStmt->execute([get_profile_user_id($user)]);
-                $hoursData = $hoursStmt->fetch();
-                $end = ($hoursData['total_hours'] >= $user['required_hours']) ? format_date($hoursData['last_day']) : '';
+                $attendanceRecords = $hoursStmt->fetchAll();
+                
+                $totalHours = 0;
+                $completionDate = null;
+                $requiredHours = (float)($user['required_hours'] ?: 0);
+                
+                // Find the exact date when required hours were completed
+                foreach ($attendanceRecords as $record) {
+                    $recordHours = (float)$record['total_hours'];
+                    if ($totalHours < $requiredHours && ($totalHours + $recordHours) >= $requiredHours) {
+                        $completionDate = $record['completion_date'];
+                        break;
+                    }
+                    $totalHours += $recordHours;
+                }
+                
+                // Get total hours for display
+                $totalHoursStmt = $pdo->prepare("
+                    SELECT SUM(TIMESTAMPDIFF(SECOND, time_in, time_out) / 3600) as total_hours
+                    FROM attendance 
+                    WHERE user_id = ? AND time_out IS NOT NULL
+                ");
+                $totalHoursStmt->execute([get_profile_user_id($user)]);
+                $totalHoursResult = $totalHoursStmt->fetch();
+                $totalCompletedHours = (float)($totalHoursResult['total_hours'] ?: 0);
+                
+                $end = ($totalCompletedHours >= $requiredHours && $completionDate) ? format_date($completionDate) : 'Ongoing';
                 echo "$start to $end";
                 ?>
                 <small>
                     <?php
-                    if (!empty($end) && $end !== 'Not set') {
+                    if ($completionDate && $firstAttendance) {
                         $startDate = new DateTime($firstAttendance);
-                        $endDate = new DateTime($hoursData['last_day']);
+                        $endDate = new DateTime($completionDate);
                         $interval = $startDate->diff($endDate);
-                        $weeks = floor($interval->days / 7);
-                        echo "($weeks weeks, " . htmlspecialchars($user['required_hours'] ?: 0) . " required hours)";
+                        $weeks = $interval->days > 0 ? floor($interval->days / 7) : 0;
+                        echo "($weeks weeks, " . number_format($requiredHours, 0) . " required hours completed)";
+                    } elseif ($requiredHours > 0) {
+                        $remaining = max(0, $requiredHours - $totalCompletedHours);
+                        echo "(" . number_format($totalCompletedHours, 1) . "/" . number_format($requiredHours, 0) . " hours, " . number_format($remaining, 1) . " remaining)";
                     }
                     ?>
                 </small>
@@ -648,14 +684,17 @@ function format_date($dateString) {
                                                 $journalText = isset($journalMap[$date]) ? $journalMap[$date]['journal_text'] : '';
                                                 $journalId = isset($journalMap[$date]) ? $journalMap[$date]['id'] : 0;
                                                 $isEdited = isset($journalMap[$date]) && $journalMap[$date]['is_edited'] == 1;
+                                                $isAdminEdited = isset($journalMap[$date]) && $journalMap[$date]['edited_by_admin'] == 1;
                                                 $dayClass = !empty($journalText) ? 'has-journal' : 'no-journal';
+                                                
                                                 $headerStyle = 'cursor:pointer; color: ' . ($isEdited ? 'green' : 'var(--secondary)') . ';';
+                                                $entryStyle = $isAdminEdited ? 'background-color: #8c0364;' : '';
 
-                                                echo '<div class="journal-entry ' . $dayClass . '" data-journal-id="' . $journalId . '" data-date="' . $date . '">';
+                                                echo '<div class="journal-entry ' . $dayClass . '" data-journal-id="' . $journalId . '" data-date="' . $date . '" style="' . $entryStyle . '">';
                                                 echo '<h3 class="journal-day-header" style="' . $headerStyle . '">Day ' . $dayNum . '</h3>';
                                                 echo '<div class="journal-content">';
                                                 echo '<p class="journal-text-display" style="color:var(--text);">' . nl2br(htmlspecialchars($journalText ?: 'No journal entry.')) . '</p>';
-                                                echo '<small class="journal-date">' . htmlspecialchars($date) . '</small>';
+                                                echo '<small class="journal-date">' . date('F j, Y', strtotime($date)) . '</small>';
                                                 echo '</div></div>';
                                             }
                                         }
@@ -753,7 +792,7 @@ function format_date($dateString) {
                                                                             entry.innerHTML = `
                                                                                 <div style="display:flex;justify-content:space-between;">
                                                                                     <span style="font-weight:bold;">Day ${dayNum}</span>
-                                                                                    <span>${journal.date}</span>
+                                                                                    <span>${new Date(journal.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                                                                                 </div>
                                                                                 <div style="margin:0.5rem 0 0.25rem 0;white-space:pre-line;">${journal.journal_text}</div>
                                                                                 <small style="color:#888;">Created: ${journal.created_at}</small>
@@ -1112,23 +1151,27 @@ function format_date($dateString) {
            const editJournalText = document.getElementById('editJournalText');
            const editJournalTitle = document.getElementById('editJournalTitle');
 
-           document.querySelectorAll('.journal-day-header').forEach(header => {
-               header.addEventListener('click', function() {
-                   const entryDiv = this.closest('.journal-entry');
-                   const journalId = entryDiv.dataset.journalId;
-                   const date = entryDiv.dataset.date;
-                   const currentText = entryDiv.querySelector('.journal-text-display').innerText;
+           const canEdit = <?= (isset($_SESSION['admin_id']) || $_SESSION['user_id'] == $view_user_id) ? 'true' : 'false' ?>;
+           if (canEdit) {
+               document.querySelectorAll('.journal-day-header').forEach(header => {
+                   header.addEventListener('click', function() {
+                       const entryDiv = this.closest('.journal-entry');
+                       const journalId = entryDiv.dataset.journalId;
+                       const date = entryDiv.dataset.date;
+                       const currentText = entryDiv.querySelector('.journal-text-display').innerText;
 
-                   if(journalId && journalId !== "0") {
-                       editJournalId.value = journalId;
-                       editJournalText.value = currentText === 'No journal entry.' ? '' : currentText;
-                       editJournalTitle.innerText = `Edit Journal for ${date}`;
-                       editJournalModal.classList.add('active');
-                   } else {
-                       alert('No journal entry to edit for this day.');
-                   }
+                       if(journalId && journalId !== "0") {
+                           editJournalId.value = journalId;
+                           editJournalText.value = currentText === 'No journal entry.' ? '' : currentText;
+                           const formattedDate = new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                           editJournalTitle.innerText = `Edit Journal for ${formattedDate}`;
+                           editJournalModal.classList.add('active');
+                       } else {
+                           alert('No journal entry to edit for this day.');
+                       }
+                   });
                });
-           });
+           }
 
            function closeEditModal() {
                editJournalModal.classList.remove('active');
@@ -1149,7 +1192,7 @@ function format_date($dateString) {
                const formData = new FormData();
                formData.append('journal_id', journalId);
                formData.append('journal_text', journalText);
-               // You might need a CSRF token here depending on your setup
+               formData.append('user_id', <?= $view_user_id ?>); // Pass target user ID for authorization
 
                fetch('/attendance-system/profile/journal/update', {
                    method: 'POST',
@@ -1159,8 +1202,13 @@ function format_date($dateString) {
                .then(data => {
                    if (data.success) {
                        const entryDiv = document.querySelector(`.journal-entry[data-journal-id='${journalId}']`);
+                       const isAdmin = <?= isset($_SESSION['admin_id']) ? 'true' : 'false' ?>;
                        entryDiv.querySelector('.journal-text-display').innerHTML = nl2br(escapeHtml(journalText));
-                       entryDiv.querySelector('.journal-day-header').style.color = 'green';
+                       if (isAdmin) {
+                           entryDiv.style.backgroundColor = '#8c0364';
+                       } else {
+                           entryDiv.querySelector('.journal-day-header').style.color = 'green';
+                       }
                        closeEditModal();
                        alert('Journal updated successfully!');
                    } else {

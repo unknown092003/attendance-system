@@ -1,0 +1,1 @@
+ALTER TABLE `daily_journals` ADD `edited_by_admin` TINYINT(1) NOT NULL DEFAULT 0 AFTER `is_edited`;

@@ -14,7 +14,7 @@ try {
     
     // Run the migrations
     $migrations = [
-        'add_is_edited_to_journals.sql'
+        'add_edited_by_admin_to_journals.sql'
     ];
     
     foreach ($migrations as $migration) {
