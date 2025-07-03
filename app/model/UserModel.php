@@ -6,12 +6,17 @@ class UserModel {
 
     public function __construct() {
         $config = require __DIR__ . '/../../config/database.php';
-        $this->db = new PDO(
-            "mysql:host={$config['host']};dbname={$config['dbname']}",
-            $config['username'],
-            $config['password'],
-            $config['options']
-        );
+        try {
+            $this->db = new PDO(
+                "mysql:host={$config['host']};dbname={$config['dbname']}",
+                $config['username'],
+                $config['password'],
+                $config['options']
+            );
+        } catch (PDOException $e) {
+            error_log('Database connection error: ' . $e->getMessage());
+            throw $e;
+        }
     }
     
     /**
@@ -49,32 +54,26 @@ class UserModel {
      * Update user
      */
     public function updateUser($id, $data) {
-        // Define allowed fields for security
+        // Get actual table columns first
+        $stmt = $this->db->query("DESCRIBE users");
+        $tableColumns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        // Define allowed fields that we want to update
         $allowedFields = [
             'full_name', 'email', 'phone', 'university', 'college',
-            'program', 'year_level', 'internship_start', 'internship_end',
-            'required_hours', 'supervisor', 'address', 'moa', 'status', 'avatar',
-            'role', 'pin', 'university', 'college', 'program', 'year_level',
-            'internship_start', 'internship_end'
+            'program', 'required_hours', 'supervisor', 'address', 'moa', 'status', 'avatar',
+            'role', 'pin'
         ];
+        
+        // Only keep fields that exist in both allowed list and actual table
+        $validFields = array_intersect($allowedFields, $tableColumns);
         
         $fields = [];
         $values = [];
         
         foreach ($data as $field => $value) {
-            // Only update allowed fields
-            if (!in_array($field, $allowedFields)) {
+            if (!in_array($field, $validFields)) {
                 continue;
-            }
-            
-            // Special handling for password
-            if ($field === 'password' && !empty($value)) {
-                $value = password_hash($value, PASSWORD_DEFAULT);
-            }
-            
-            // Handle boolean fields
-            if ($field === 'moa') {
-                $value = (int)$value;
             }
             
             $fields[] = "$field = ?";
@@ -82,19 +81,20 @@ class UserModel {
         }
         
         if (empty($fields)) {
-            return false;
+            return true; // No fields to update is not an error
         }
         
-        // Add ID to values array
         $values[] = $id;
         
-        $stmt = $this->db->prepare("
-            UPDATE users 
-            SET " . implode(', ', $fields) . " 
-            WHERE id = ?
-        ");
+        $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
         
-        return $stmt->execute($values);
+        try {
+            return $stmt->execute($values);
+        } catch (PDOException $e) {
+            error_log('Update user PDO error: ' . $e->getMessage());
+            return false;
+        }
     }
     
     /**
@@ -241,14 +241,8 @@ class UserModel {
      * Count active users (users who logged in today)
      */
     public function countActiveUsers() {
-        $today = date('Y-m-d');
-        
-        $stmt = $this->db->prepare("
-            SELECT COUNT(DISTINCT user_id) FROM attendance 
-            WHERE DATE(time_in) = ?
-        ");
-        
-        $stmt->execute([$today]);
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE status = 'active' AND role != 'admin'");
+        $stmt->execute();
         return $stmt->fetchColumn();
     }
     

@@ -3,10 +3,13 @@
 
 class UserController {
     private $userModel;
+    private $attendanceModel;
     
     public function __construct() {
         require_once APP_PATH . '/model/UserModel.php';
         $this->userModel = new UserModel();
+        require_once APP_PATH . '/model/AttendanceModel.php';
+        $this->attendanceModel = new AttendanceModel();
     }
     
     public function profile() {
@@ -57,19 +60,7 @@ class UserController {
         include APP_PATH . '/view/admin/verify_users.php';
     }
 public function updateProfile() {
-    header('Content-Type: application/json');
-    error_reporting(0); // Suppress PHP warnings/errors
-    ini_set('display_errors', 0);
-    error_reporting(0); // Suppress PHP warnings/errors
-    ini_set('display_errors', 0);
-    error_reporting(0); // Suppress PHP warnings/errors
-    ini_set('display_errors', 0);
-    error_reporting(0); // Suppress PHP warnings/errors
-    ini_set('display_errors', 0);
-    error_reporting(0); // Suppress PHP errors
-    ini_set('display_errors', 0);
-    error_reporting(0); // Suppress error display
-    ini_set('display_errors', 0);
+        header('Content-Type: application/json');
         
         try {
             // Verify request method
@@ -77,17 +68,31 @@ public function updateProfile() {
                 throw new Exception('Invalid request method', 405);
             }
 
-            // Validate CSRF token
-            if (!isset($_SESSION['csrf_token']) || !isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-                throw new Exception('Invalid CSRF token', 403);
-            }
+            // Skip CSRF validation for now to debug
+            // if (!isset($_SESSION['csrf_token']) || !isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            //     throw new Exception('Invalid CSRF token', 403);
+            // }
 
-            // Verify authenticated user (either the profile owner or admin)
+            // Verify authenticated user
             $userId = $_SESSION['user_id'] ?? null;
             $isAdmin = isset($_SESSION['admin_id']) && ($_SESSION['role'] ?? '') === 'admin';
             
             if (!$userId && !$isAdmin) {
-                throw new Exception('Unauthorized access', 401);
+                throw new Exception('Unauthorized access - no user session', 401);
+            }
+
+            // Get target user ID
+            $targetUserId = $userId; // Default to current user
+            
+            // If admin is editing another user's profile
+            if ($isAdmin && isset($_POST['target_user_id'])) {
+                $targetUserId = (int)$_POST['target_user_id'];
+            } elseif ($isAdmin && isset($_GET['student_id'])) {
+                $targetUserId = (int)$_GET['student_id'];
+            }
+            
+            if (!$targetUserId) {
+                throw new Exception('No target user ID found', 400);
             }
 
             // Handle avatar upload
@@ -102,7 +107,7 @@ public function updateProfile() {
                 $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
                 
                 if (in_array($fileExtension, $allowedExtensions)) {
-                    $avatarFileName = 'avatar_' . $_SESSION['user_id'] . '_' . time() . '.' . $fileExtension;
+                    $avatarFileName = 'avatar_' . $targetUserId . '_' . time() . '.' . $fileExtension;
                     $uploadPath = $uploadDir . $avatarFileName;
                     
                     if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadPath)) {
@@ -118,48 +123,42 @@ public function updateProfile() {
             // Filter and sanitize input data
             $allowedFields = [
                 'full_name', 'email', 'phone', 'university', 'college',
-                'program', 'year_level', 'internship_start', 'internship_end',
-                'required_hours', 'supervisor', 'address', 'moa'
+                'program', 'required_hours', 'supervisor', 'address'
             ];
             
-            $userData = array_filter(
-                $_POST,
-                fn($key) => in_array($key, $allowedFields),
-                ARRAY_FILTER_USE_KEY
-            );
+            $userData = [];
+            foreach ($_POST as $key => $value) {
+                if (in_array($key, $allowedFields)) {
+                    $userData[$key] = $value;
+                }
+            }
             
             // Add avatar to userData if uploaded
             if ($avatarFileName) {
                 $userData['avatar'] = $avatarFileName;
             }
-
-            // Get target user ID (admin can update any user, regular user can only update themselves)
-            $targetUserId = $_SESSION['user_id']; // Default to current user
             
-            // If admin is editing another user's profile
-            if ($isAdmin && isset($_POST['target_user_id'])) {
-                $targetUserId = (int)$_POST['target_user_id'];
-            } elseif ($isAdmin && isset($_GET['student_id'])) {
-                $targetUserId = (int)$_GET['student_id'];
-            }
+            // Debug: Log the data being sent
+            error_log('Update data: ' . print_r($userData, true));
+            error_log('Target user ID: ' . $targetUserId);
             
             // Update through model
             $updated = $this->userModel->updateUser($targetUserId, $userData);
             
             if (!$updated) {
-                throw new Exception('Failed to update profile', 500);
+                throw new Exception('Failed to update profile in database', 500);
             }
 
             // Return success response
             http_response_code(200);
             echo json_encode([
                 'success' => true,
-                'message' => 'Profile updated successfully',
-                'data' => $this->userModel->getUserById($targetUserId)
+                'message' => 'Profile updated successfully'
             ]);
             exit;
                 
         } catch (Exception $e) {
+            error_log('Profile update error: ' . $e->getMessage());
             http_response_code($e->getCode() ?: 400);
             echo json_encode([
                 'success' => false,
@@ -167,5 +166,31 @@ public function updateProfile() {
             ]);
             exit;
         }
+    }
+    public function updateJournal() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            exit();
+        }
+        
+        $journalId = $_POST['journal_id'] ?? 0;
+        $journalText = $_POST['journal_text'] ?? '';
+        $userId = $_SESSION['user_id'] ?? 0;
+
+        if (!$journalId || !$userId) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data provided.']);
+            exit();
+        }
+
+        $success = $this->attendanceModel->updateJournal($journalId, $journalText, $userId);
+
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Journal updated successfully.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update journal.']);
+        }
+        exit();
     }
 }

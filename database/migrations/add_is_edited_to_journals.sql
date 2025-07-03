@@ -1,0 +1,1 @@
+ALTER TABLE `daily_journals` ADD `is_edited` TINYINT(1) NOT NULL DEFAULT 0 AFTER `journal_text`;

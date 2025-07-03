@@ -284,6 +284,28 @@ function format_date($dateString) {
     </style>
 </head>
 <body>
+   <!-- Journal Edit Modal -->
+   <div class="modal" id="editJournalModal">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h3 class="modal-title" id="editJournalTitle">Edit Journal Entry</h3>
+               <button class="modal-close" id="closeJournalModal">&times;</button>
+           </div>
+           <div class="modal-body">
+               <form id="editJournalForm">
+                   <input type="hidden" id="editJournalId" name="journal_id">
+                   <div class="form-group">
+                       <label for="editJournalText" class="form-label">Journal Entry</label>
+                       <textarea id="editJournalText" name="journal_text" class="form-control" rows="10"></textarea>
+                   </div>
+               </form>
+           </div>
+           <div class="modal-footer">
+               <button type="button" class="btn btn-secondary" id="cancelJournalEdit">Cancel</button>
+               <button type="button" class="btn btn-primary" id="saveJournalEdit">Save Changes</button>
+           </div>
+       </div>
+   </div>
         <!-- Main container for the profile page -->
         <div class="container">
             <!-- Profile card containing all user information -->
@@ -401,6 +423,16 @@ function format_date($dateString) {
         </div>
         
         <!-- MOA status group -->
+        <div class="detail-group">
+            <span class="detail-label">MOA Status</span>
+            <span class="detail-value" id="profile-moa">
+                <?php 
+                $moaStatus = $user['moa'] ?? 0;
+                echo $moaStatus ? 'Completed' : 'Pending';
+                ?>
+                <small><?= $moaStatus ? '✓ MOA has been signed' : '⚠ MOA needs to be completed' ?></small>
+            </span>
+        </div>
     </div>
 </section>
                                 
@@ -613,17 +645,16 @@ function format_date($dateString) {
                                             if (isset($journalMap[$date])) {
                                                 $hasJournal = true;
                                                 $entry = $journalMap[$date];
-                                                echo '<div class="journal-entry">';
-                                                echo '<h3 style="color: var(--secondary);">Day ' . $dayNum . '</h3>';
+                                                $journalText = isset($journalMap[$date]) ? $journalMap[$date]['journal_text'] : '';
+                                                $journalId = isset($journalMap[$date]) ? $journalMap[$date]['id'] : 0;
+                                                $isEdited = isset($journalMap[$date]) && $journalMap[$date]['is_edited'] == 1;
+                                                $dayClass = !empty($journalText) ? 'has-journal' : 'no-journal';
+                                                $headerStyle = 'cursor:pointer; color: ' . ($isEdited ? 'green' : 'var(--secondary)') . ';';
+
+                                                echo '<div class="journal-entry ' . $dayClass . '" data-journal-id="' . $journalId . '" data-date="' . $date . '">';
+                                                echo '<h3 class="journal-day-header" style="' . $headerStyle . '">Day ' . $dayNum . '</h3>';
                                                 echo '<div class="journal-content">';
-                                                echo '<p style="color:var(--text);">' . nl2br(htmlspecialchars($entry['journal_text'])) . '</p>';
-                                                echo '<small class="journal-date">' . htmlspecialchars($entry['date']) . '</small>';
-                                                echo '</div></div>';
-                                            } else {
-                                                echo '<div class="journal-entry">';
-                                                echo '<h3>Day ' . $dayNum . '</h3>';
-                                                echo '<div class="journal-content">';
-                                                echo '<p style="color:#888;">No journal entry.</p>';
+                                                echo '<p class="journal-text-display" style="color:var(--text);">' . nl2br(htmlspecialchars($journalText ?: 'No journal entry.')) . '</p>';
                                                 echo '<small class="journal-date">' . htmlspecialchars($date) . '</small>';
                                                 echo '</div></div>';
                                             }
@@ -1070,5 +1101,93 @@ function format_date($dateString) {
 });
         });
         </script>
+
+       <script>
+       document.addEventListener('DOMContentLoaded', function() {
+           const editJournalModal = document.getElementById('editJournalModal');
+           const closeJournalModal = document.getElementById('closeJournalModal');
+           const cancelJournalEdit = document.getElementById('cancelJournalEdit');
+           const saveJournalEdit = document.getElementById('saveJournalEdit');
+           const editJournalId = document.getElementById('editJournalId');
+           const editJournalText = document.getElementById('editJournalText');
+           const editJournalTitle = document.getElementById('editJournalTitle');
+
+           document.querySelectorAll('.journal-day-header').forEach(header => {
+               header.addEventListener('click', function() {
+                   const entryDiv = this.closest('.journal-entry');
+                   const journalId = entryDiv.dataset.journalId;
+                   const date = entryDiv.dataset.date;
+                   const currentText = entryDiv.querySelector('.journal-text-display').innerText;
+
+                   if(journalId && journalId !== "0") {
+                       editJournalId.value = journalId;
+                       editJournalText.value = currentText === 'No journal entry.' ? '' : currentText;
+                       editJournalTitle.innerText = `Edit Journal for ${date}`;
+                       editJournalModal.classList.add('active');
+                   } else {
+                       alert('No journal entry to edit for this day.');
+                   }
+               });
+           });
+
+           function closeEditModal() {
+               editJournalModal.classList.remove('active');
+           }
+
+           closeJournalModal.addEventListener('click', closeEditModal);
+           cancelJournalEdit.addEventListener('click', closeEditModal);
+           editJournalModal.addEventListener('click', function(e) {
+               if (e.target === editJournalModal) {
+                   closeEditModal();
+               }
+           });
+
+           saveJournalEdit.addEventListener('click', function() {
+               const journalId = editJournalId.value;
+               const journalText = editJournalText.value;
+
+               const formData = new FormData();
+               formData.append('journal_id', journalId);
+               formData.append('journal_text', journalText);
+               // You might need a CSRF token here depending on your setup
+
+               fetch('/attendance-system/profile/journal/update', {
+                   method: 'POST',
+                   body: formData
+               })
+               .then(response => response.json())
+               .then(data => {
+                   if (data.success) {
+                       const entryDiv = document.querySelector(`.journal-entry[data-journal-id='${journalId}']`);
+                       entryDiv.querySelector('.journal-text-display').innerHTML = nl2br(escapeHtml(journalText));
+                       entryDiv.querySelector('.journal-day-header').style.color = 'green';
+                       closeEditModal();
+                       alert('Journal updated successfully!');
+                   } else {
+                       alert('Error: ' + data.message);
+                   }
+               })
+               .catch(error => {
+                   console.error('Error:', error);
+                   alert('An error occurred while updating the journal.');
+               });
+           });
+
+           function escapeHtml(text) {
+               var map = {
+                   '&': '&',
+                   '<': '<',
+                   '>': '>',
+                   '"': '"',
+                   "'": '&#039;'
+               };
+               return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+           }
+
+           function nl2br(str) {
+               return str.replace(/\\r\\n|\\n\\r|\\r|\\n/g, '<br>');
+           }
+       });
+       </script>
 </body>
 </html>

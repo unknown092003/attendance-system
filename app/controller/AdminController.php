@@ -44,13 +44,33 @@ class AdminController {
             }
         }
         
+        $internProgress = $this->userModel->getInternProgress();
+        $ongoingProgress = [];
+        $completedProgress = [];
+
+        foreach ($internProgress as $intern) {
+            $completedHours = (float)$intern['completed_hours'];
+            $requiredHours = (float)$intern['required_hours'];
+            if ($requiredHours > 0) {
+                $percentage = ($completedHours / $requiredHours) * 100;
+                if ($percentage >= 100) {
+                    $completedProgress[] = $intern;
+                } else {
+                    $ongoingProgress[] = $intern;
+                }
+            } else {
+                $ongoingProgress[] = $intern;
+            }
+        }
+
         $data = [
             'userCount' => $this->userModel->countUsers(),
             'activeUsers' => $this->userModel->countActiveUsers(),
             'todayAttendance' => $this->attendanceModel->getTodayAttendanceCount(),
             'recentActivity' => $this->attendanceModel->getRecentActivity(5),
             'studentsToday' => $studentsToday,
-            'internProgress' => $this->userModel->getInternProgress(),
+            'ongoingProgress' => $ongoingProgress,
+            'completedProgress' => $completedProgress,
             'allStudents' => $allStudents,
             'absentStudents' => $absentStudents,
             'today' => $today
@@ -63,8 +83,21 @@ class AdminController {
      * Show users management page
      */
     public function users() {
+        $allUsers = $this->userModel->getAllUsers();
+        $activeUsers = [];
+        $inactiveUsers = [];
+
+        foreach ($allUsers as $user) {
+            if ($user['status'] === 'active') {
+                $activeUsers[] = $user;
+            } else {
+                $inactiveUsers[] = $user;
+            }
+        }
+
         $data = [
-            'users' => $this->userModel->getAllUsers()
+            'activeUsers' => $activeUsers,
+            'inactiveUsers' => $inactiveUsers
         ];
         
         require_once APP_PATH . '/view/admin/users.php';
@@ -254,21 +287,33 @@ class AdminController {
         $status = $_POST['status'] ?? '';
         $moa = $_POST['moa'] ?? '0';
         
+        // Debug logging
+        error_log('UpdateUserStatus - POST data: ' . print_r($_POST, true));
+        error_log('UpdateUserStatus - userId: ' . $userId . ', status: ' . $status . ', moa: ' . $moa);
+        
         if (!$userId || !in_array($status, ['active', 'inactive'])) {
             echo json_encode(['success' => false, 'message' => 'Invalid parameters']);
             exit();
         }
         
+        $currentUser = $this->userModel->getUserById($userId);
+        if (!$currentUser) {
+            echo json_encode(['success' => false, 'message' => 'User not found.']);
+            exit();
+        }
+
         $updateData = [
             'status' => $status,
-            'moa' => $moa === '1' ? 1 : null
+            'moa' => (int)$moa
         ];
         
+        $pin = null; // Initialize pin variable
+
+        // Logic for handling PIN
         if ($status === 'inactive') {
-            // Remove PIN when setting to inactive
-            $updateData['pin'] = null;
-        } else {
-            // Auto-generate PIN when setting to active
+            $updateData['pin'] = null; // Set PIN to null if user is made inactive
+        } elseif ($currentUser['status'] === 'inactive' && $status === 'active') {
+            // Generate a new PIN only when moving from inactive to active
             try {
                 $pin = $this->userModel->generateUniquePin();
                 $updateData['pin'] = $pin;
@@ -281,7 +326,7 @@ class AdminController {
         $success = $this->userModel->updateUser($userId, $updateData);
         
         if ($success) {
-            $message = $status === 'active' ? "Status updated successfully. New PIN: {$pin}" : 'Status updated successfully';
+            $message = ($pin !== null) ? "Status updated successfully. New PIN: {$pin}" : 'Status updated successfully';
             echo json_encode(['success' => true, 'message' => $message]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to update status']);

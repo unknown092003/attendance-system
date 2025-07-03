@@ -22,6 +22,11 @@ return [
         'action' => 'updateProfile',
         'methods' => ['POST']
     ],
+    '/profile/journal/update' => [
+        'controller' => 'UserController',
+        'action' => 'updateJournal',
+        'methods' => ['POST']
+    ],
     
     // User routes
     '/home' => ['controller' => 'AttendanceController', 'action' => 'showHome', 'auth' => true],

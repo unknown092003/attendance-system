@@ -186,53 +186,80 @@
                 </div>
             </div>
             
-            <!-- Internship progress section -->
-             <h2>Internship Progress</h2>
-             <div class="table-container">
-                        <div class="dashboard-section">
-                                
-                                <?php if (empty($data['internProgress'])): ?>
-                                    <p>No interns found with required hours.</p>
-                                <?php else: ?>
-                                    <!-- Internship progress table -->
-                              <table>
-                                  <thead>
-                                      <tr>
-                                          <th>Name</th>
-                                          <th>Required Hours</th>
-                                          <th>Completed Hours</th>
-                                          <th>Remaining Hours</th>
-                                          <th>Progress</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody>
-                            <!-- Loop through intern progress data -->
-                                    <?php foreach ($data['internProgress'] as $intern): 
-                                        $completedHours = (float)$intern['completed_hours'];
-                                        $requiredHours = (float)$intern['required_hours'];
-                                        $remainingHours = max(0, $requiredHours - $completedHours);
-                                        $percentage = $requiredHours > 0 ? min(100, ($completedHours / $requiredHours) * 100) : 0;
-                                    ?>
-                                        <tr>
-                                            <!-- Intern details -->
-                                            <td><?php echo htmlspecialchars($intern['full_name']); ?></td>
-                                            <td><?php echo number_format($requiredHours, 2); ?> hrs</td>
-                                            <td><?php echo number_format($completedHours, 2); ?> hrs / <?php echo round($completedHours / 8, 2); ?> days</td>
-                                            <td><?php echo number_format($remainingHours, 2); ?> hrs / <?php echo round($remainingHours / 8); ?> days</td>
-                                            <!-- Progress bar -->
-                                            <td>
-                                                <div class="progress-bar">
-                                                    <div class="progress" style="width: <?php echo $percentage; ?>%"></div>
-                                                    <span><?php echo number_format($percentage, 1); ?>%</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                            <?php endif; ?>
-                        </div>
-             </div>
+            <!-- Ongoing Internship progress section -->
+            <h2>Ongoing Internship Progress</h2>
+            <div class="table-container">
+                <div class="dashboard-section">
+                    <?php if (empty($data['ongoingProgress'])): ?>
+                        <p>No interns with ongoing progress.</p>
+                    <?php else: ?>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Required Hours</th>
+                                    <th>Completed Hours</th>
+                                    <th>Remaining Hours</th>
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($data['ongoingProgress'] as $intern):
+                                    $completedHours = (float)$intern['completed_hours'];
+                                    $requiredHours = (float)$intern['required_hours'];
+                                    $remainingHours = max(0, $requiredHours - $completedHours);
+                                    $percentage = $requiredHours > 0 ? min(100, ($completedHours / $requiredHours) * 100) : 0;
+                                ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($intern['full_name']); ?></td>
+                                        <td><?php echo number_format($requiredHours, 2); ?> hrs</td>
+                                        <td><?php echo number_format($completedHours, 2); ?> hrs / <?php echo round($completedHours / 8, 2); ?> days</td>
+                                        <td><?php echo number_format($remainingHours, 2); ?> hrs / <?php echo round($remainingHours / 8); ?> days</td>
+                                        <td>
+                                            <div class="progress-bar">
+                                                <div class="progress" style="width: <?php echo $percentage; ?>%"></div>
+                                                <span><?php echo number_format($percentage, 1); ?>%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Completed Internship progress section -->
+            <h2>Completed Internships</h2>
+            <div class="table-container">
+                <div class="dashboard-section">
+                    <?php if (empty($data['completedProgress'])): ?>
+                        <p>No interns have completed their hours.</p>
+                    <?php else: ?>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Required Hours</th>
+                                    <th>Completed Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($data['completedProgress'] as $intern):
+                                    $completedHours = (float)$intern['completed_hours'];
+                                    $requiredHours = (float)$intern['required_hours'];
+                                ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($intern['full_name']); ?></td>
+                                        <td><?php echo number_format($requiredHours, 2); ?> hrs</td>
+                                        <td><?php echo number_format($completedHours, 2); ?> hrs / <?php echo round($completedHours / 8, 2); ?> days</td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+            </div>
             
         </main>
         

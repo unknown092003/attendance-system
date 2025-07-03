@@ -14,10 +14,7 @@ try {
     
     // Run the migrations
     $migrations = [
-        'restructure_users_table.sql',
-        'create_admins_table.sql',
-        'add_required_hours.sql',
-        'add_default_admin.sql'
+        'add_is_edited_to_journals.sql'
     ];
     
     foreach ($migrations as $migration) {

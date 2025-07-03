@@ -39,42 +39,69 @@
                 <a href="/attendance-system/admin/users/create" class="btn primary">Create New User</a>
             </div>
             
-            <!-- Users list section -->
+            <!-- Active Users list section -->
             <div class="users-list">
-                <?php if (empty($data['users'])): ?>
-                    <!-- Message shown when no users exist -->
-                    <p>No users found.</p>
+                <h3>Active Users</h3>
+                <?php if (empty($data['activeUsers'])): ?>
+                    <p>No active users found.</p>
                 <?php else: ?>
-                    <!-- Users table -->
                     <table>
                         <thead>
                             <tr>
-                                <th>Username</th> <!-- Column header -->
-                                <th>PIN</th> <!-- Column header -->
-                                <th>Role</th> <!-- Column header -->
-                                <th>Actions</th> <!-- Column header -->
+                                <th>Username</th>
+                                <th>PIN</th>
+                                <th>Role</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Loop through each user and display their information -->
-                            <?php foreach ($data['users'] as $user): ?>
+                            <?php foreach ($data['activeUsers'] as $user): ?>
                                 <tr>
-                                    <!-- User's full name (escaped for security) -->
                                     <td><?php echo htmlspecialchars($user['full_name']); ?></td>
-                                    <!-- User's PIN (escaped for security) -->
                                     <td><?php echo htmlspecialchars($user['pin']); ?></td>
-                                    <!-- User's role with colored badge -->
                                     <td>
                                         <span class="badge <?php echo $user['role'] === 'admin' ? 'primary' : ($user['role'] === 'intern' ? 'info' : 'secondary'); ?>">
                                             <?php echo ucfirst(htmlspecialchars($user['role'])); ?>
                                         </span>
                                     </td>
-                                    <!-- Action buttons -->
                                     <td>
-                                        <!-- View Profile link -->
                                         <a href="/attendance-system/admin/profile?student_id=<?php echo $user['id']; ?>" class="btn-sm btn-info mr-2">View Profile</a>
-                                        
-                                        <!-- Edit user status button -->
+                                        <button class="btn-sm primary" onclick="openEditModal(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['full_name']); ?>', '<?php echo $user['status'] ?? 'active'; ?>', '<?php echo $user['pin'] ?? ''; ?>', '<?php echo $user['moa'] ?? 0; ?>')">Edit Status</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+
+            <!-- Inactive Users list section -->
+            <div class="users-list" style="margin-top: 2rem;">
+                <h3>Inactive Users</h3>
+                <?php if (empty($data['inactiveUsers'])): ?>
+                    <p>No inactive users found.</p>
+                <?php else: ?>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>PIN</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($data['inactiveUsers'] as $user): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($user['full_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($user['pin']); ?></td>
+                                    <td>
+                                        <span class="badge <?php echo $user['role'] === 'admin' ? 'primary' : ($user['role'] === 'intern' ? 'info' : 'secondary'); ?>">
+                                            <?php echo ucfirst(htmlspecialchars($user['role'])); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="/attendance-system/admin/profile?student_id=<?php echo $user['id']; ?>" class="btn-sm btn-info mr-2">View Profile</a>
                                         <button class="btn-sm primary" onclick="openEditModal(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['full_name']); ?>', '<?php echo $user['status'] ?? 'active'; ?>', '<?php echo $user['pin'] ?? ''; ?>', '<?php echo $user['moa'] ?? 0; ?>')">Edit Status</button>
                                     </td>
                                 </tr>
@@ -120,9 +147,12 @@
                     <label>PIN</label>
                     <p style="color: #666; font-size: 14px; margin: 0;">A unique 4-digit PIN will be automatically generated when status is set to active.</p>
                 </div>
-                <div style="text-align: right; margin-top: 20px;">
-                    <button type="button" onclick="closeEditModal()" class="btn secondary" style="margin-right: 10px;">Cancel</button>
-                    <button type="submit" class="btn primary">Update Status</button>
+                <div class="form-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                    <button type="button" id="deleteUserBtn" class="btn danger">Delete Intern</button>
+                    <div>
+                        <button type="button" onclick="closeEditModal()" class="btn secondary" style="margin-right: 10px;">Cancel</button>
+                        <button type="submit" class="btn primary">Update Status</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -166,12 +196,15 @@
             
             const userId = document.getElementById('editUserId').value;
             const status = document.getElementById('editStatus').value;
+            const moa = document.getElementById('editMoa').value;
+            
+            console.log('Submitting:', { userId, status, moa }); // Debug log
             
             // Submit the form
             const formData = new FormData();
             formData.append('user_id', userId);
             formData.append('status', status);
-            formData.append('moa', document.getElementById('editMoa').value);
+            formData.append('moa', moa);
             
             fetch('/attendance-system/admin/users/update-status', {
                 method: 'POST',
@@ -190,6 +223,35 @@
                 console.error('Error:', error);
                 alert('An error occurred while updating status.');
             });
+        });
+
+        // Handle delete button click
+        document.getElementById('deleteUserBtn').addEventListener('click', function() {
+            const userId = document.getElementById('editUserId').value;
+            const userName = document.getElementById('editUserName').textContent;
+
+            if (confirm(`Are you sure you want to delete the intern "${userName}"? This action cannot be undone.`)) {
+                const formData = new FormData();
+                formData.append('user_id', userId);
+
+                fetch('/attendance-system/admin/users/delete', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    // Check for a redirect response to get the flash message
+                    if (response.ok) {
+                        alert('User deleted successfully!');
+                        location.reload();
+                    } else {
+                        alert('Failed to delete user.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the user.');
+                });
+            }
         });
 
         // Close modal when clicking outside

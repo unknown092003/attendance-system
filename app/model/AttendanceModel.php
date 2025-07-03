@@ -459,4 +459,12 @@ class AttendanceModel {
             return false;
         }
     }
+    public function updateJournal($journalId, $journalText, $userId) {
+        $stmt = $this->db->prepare("
+            UPDATE daily_journals
+            SET journal_text = ?, is_edited = 1
+            WHERE id = ? AND user_id = ?
+        ");
+        return $stmt->execute([$journalText, $journalId, $userId]);
+    }
 }
