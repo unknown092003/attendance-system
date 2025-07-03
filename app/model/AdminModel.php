@@ -91,6 +91,25 @@ class AdminModel {
     }
     
     /**
+     * Change admin password
+     */
+    public function changePassword($adminId, $currentPassword, $newPassword) {
+        // First verify current password
+        $stmt = $this->db->prepare("SELECT password FROM admins WHERE id = ?");
+        $stmt->execute([$adminId]);
+        $admin = $stmt->fetch();
+        
+        if (!$admin || !password_verify($currentPassword, $admin['password'])) {
+            return false;
+        }
+        
+        // Update with new password
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $this->db->prepare("UPDATE admins SET password = ? WHERE id = ?");
+        return $stmt->execute([$hashedPassword, $adminId]);
+    }
+    
+    /**
      * Get all admins
      */
     public function getAllAdmins() {

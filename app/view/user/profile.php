@@ -365,20 +365,27 @@ function format_date($dateString) {
             <span class="detail-label">Internship Period</span>
             <span class="detail-value" id="profile-dates">
                 <?php
-                $start = $user['internship_start'] ? format_date($user['internship_start']) : 'Not set';
-                $end = $user['internship_end'] ? format_date($user['internship_end']) : 'Not set';
+                // Get first attendance date
+                $firstAttendanceStmt = $pdo->prepare("SELECT MIN(time_in) as first_day FROM attendance WHERE user_id = ?");
+                $firstAttendanceStmt->execute([get_profile_user_id($user)]);
+                $firstAttendance = $firstAttendanceStmt->fetchColumn();
+                $start = $firstAttendance ? format_date($firstAttendance) : 'Not set';
+                
+                // Calculate end date when required hours are completed
+                $hoursStmt = $pdo->prepare("SELECT SUM(hours_worked) as total_hours, MAX(time_out) as last_day FROM attendance WHERE user_id = ?");
+                $hoursStmt->execute([get_profile_user_id($user)]);
+                $hoursData = $hoursStmt->fetch();
+                $end = ($hoursData['total_hours'] >= $user['required_hours']) ? format_date($hoursData['last_day']) : '';
                 echo "$start to $end";
                 ?>
                 <small>
                     <?php
-                    if ($user['internship_start'] && $user['internship_end']) {
-                        $startDate = new DateTime($user['internship_start']);
-                        $endDate = new DateTime($user['internship_end']);
+                    if (!empty($end) && $end !== 'Not set') {
+                        $startDate = new DateTime($firstAttendance);
+                        $endDate = new DateTime($hoursData['last_day']);
                         $interval = $startDate->diff($endDate);
                         $weeks = floor($interval->days / 7);
                         echo "($weeks weeks, " . htmlspecialchars($user['required_hours'] ?: 0) . " required hours)";
-                    } else {
-                        echo "(Duration not set)";
                     }
                     ?>
                 </small>
@@ -394,16 +401,6 @@ function format_date($dateString) {
         </div>
         
         <!-- MOA status group -->
-        <div class="detail-group">
-            <span class="detail-label">MOA Status</span>
-            <span class="detail-value" id="profile-moa">
-                <?php if (!empty($user['moa'] ?? 0)): ?>
-                    <i class="fas fa-check-circle" style="color: green;"></i> Signed
-                <?php else: ?>
-                    <i class="fas fa-times-circle" style="color: red;"></i> Not Signed
-                <?php endif; ?>
-            </span>
-        </div>
     </div>
 </section>
                                 
@@ -821,16 +818,6 @@ function format_date($dateString) {
 
                 <!-- Internship Information -->
                 <div class="form-group">
-                    <label class="form-label">Internship Start Date</label>
-                    <input type="date" name="internship_start" class="form-control" 
-                           value="<?= htmlspecialchars($user['internship_start'] ?? '') ?>">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Internship End Date</label>
-                    <input type="date" name="internship_end" class="form-control" 
-                           value="<?= htmlspecialchars($user['internship_end'] ?? '') ?>">
-                </div>
 
                 <div class="form-group">
                     <label class="form-label">Required Hours</label>
@@ -845,13 +832,7 @@ function format_date($dateString) {
                            value="<?= htmlspecialchars($user['supervisor'] ?? '') ?>">
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label">MOA Status</label>
-                    <select name="moa" class="form-control">
-                        <option value="1" <?= ($user['moa'] ?? 0) ? 'selected' : '' ?>>Signed</option>
-                        <option value="0" <?= !($user['moa'] ?? 0) ? 'selected' : '' ?>>Not Signed</option>
-                    </select>
-                </div>
+
             </div>
         </div>
         
@@ -1071,11 +1052,7 @@ function format_date($dateString) {
             // Update supervisor
             document.getElementById('profile-supervisor').textContent = formData.get('supervisor');
 
-            // Update MOA status
-            const moaStatus = formData.get('moa') === '1' ? 
-                '<i class="fas fa-check-circle" style="color: green;"></i> Signed' : 
-                '<i class="fas fa-times-circle" style="color: red;"></i> Not Signed';
-            document.getElementById('profile-moa').innerHTML = moaStatus;
+
 
             // Close the modal
             editModal.classList.remove('active');

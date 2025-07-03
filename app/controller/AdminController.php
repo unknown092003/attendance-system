@@ -82,6 +82,47 @@ class AdminController {
     }
     
     /**
+     * Handle password change
+     */
+    public function changePassword() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            exit();
+        }
+        
+        $currentPassword = $_POST['current_password'] ?? '';
+        $newPassword = $_POST['new_password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+        
+        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+            echo json_encode(['success' => false, 'message' => 'All fields are required']);
+            exit();
+        }
+        
+        if ($newPassword !== $confirmPassword) {
+            echo json_encode(['success' => false, 'message' => 'New passwords do not match']);
+            exit();
+        }
+        
+        if (strlen($newPassword) < 6) {
+            echo json_encode(['success' => false, 'message' => 'New password must be at least 6 characters long']);
+            exit();
+        }
+        
+        $adminId = Session::get('admin_id');
+        $success = $this->adminModel->changePassword($adminId, $currentPassword, $newPassword);
+        
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Password changed successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Current password is incorrect']);
+        }
+        exit();
+    }
+    
+    /**
      * Show create admin form / handle admin creation
      */
     public function createAdmin() {
@@ -194,6 +235,54 @@ class AdminController {
         }
         
         require_once APP_PATH . '/view/admin/create_user.php';
+    }
+    
+    /**
+     * Handle user status update
+     */
+    public function updateUserStatus() {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            exit();
+        }
+        
+        $userId = $_POST['user_id'] ?? 0;
+        $status = $_POST['status'] ?? '';
+        $pin = $_POST['pin'] ?? '';
+        $moa = $_POST['moa'] ?? '0';
+        
+        if (!$userId || !in_array($status, ['active', 'inactive'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid parameters']);
+            exit();
+        }
+        
+        $updateData = [
+            'status' => $status,
+            'moa' => $moa === '1' ? 1 : null
+        ];
+        
+        if ($status === 'inactive') {
+            // Remove PIN when setting to inactive
+            $updateData['pin'] = null;
+        } else {
+            // Require PIN when setting to active
+            if (empty($pin) || strlen($pin) !== 4 || !ctype_digit($pin)) {
+                echo json_encode(['success' => false, 'message' => 'Valid 4-digit PIN required for active status']);
+                exit();
+            }
+            $updateData['pin'] = $pin;
+        }
+        
+        $success = $this->userModel->updateUser($userId, $updateData);
+        
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Status updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update status']);
+        }
+        exit();
     }
     
     /**

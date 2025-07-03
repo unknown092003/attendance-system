@@ -34,12 +34,12 @@
             <div class="page-header">
                 <h2>Manage Admins</h2> <!-- Page title -->
                 <!-- Button to create new admin -->
-                <a href="/attendance-system/public/admin/admins/create" class="btn primary">Create New Admin</a>
+                <a href="/attendance-system/admin/admins/create" class="btn primary">Create New Admin</a>
             </div>
             
             <!-- Admins list section -->
             <div class="admins-list">
-                <?php if (empty($admins)): ?>
+                <?php if (empty($data['admins'])): ?>
                     <!-- Message shown when no admins exist -->
                     <p>No admins found.</p>
                 <?php else: ?>
@@ -56,7 +56,7 @@
                         </thead>
                         <tbody>
                             <!-- Loop through each admin and display their information -->
-                            <?php foreach ($admins as $admin): ?>
+                            <?php foreach ($data['admins'] as $admin): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($admin['firstname']); ?></td>
                                     <td><?php echo htmlspecialchars($admin['lastname']); ?></td>
@@ -65,7 +65,7 @@
                                     <td><?php echo date('M d, Y', strtotime($admin['created_at'])); ?></td>
                                     <td>
                                         <!-- Form for deleting an admin -->
-                                        <form action="/attendance-system/public/admin/admins/delete" method="post" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this admin?');">
+                                        <form action="/attendance-system/admin/admins/delete" method="post" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this admin?');">
                                             <input type="hidden" name="admin_id" value="<?php echo $admin['id']; ?>">
                                             <button type="submit" class="btn-sm danger">Delete</button>
                                         </form>

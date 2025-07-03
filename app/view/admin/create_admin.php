@@ -22,7 +22,7 @@
             <div class="page-header">
                 <h2>Create New Admin</h2> <!-- Form title -->
                 <!-- Back button to return to admin list -->
-                <a href="/attendance-system/public/admin/admins" class="btn secondary">Back to Admins</a>
+                <a href="/attendance-system/admin/admins" class="btn secondary">Back to Admins</a>
             </div>
             
             <!-- Error message display section -->
@@ -40,7 +40,7 @@
             <!-- Form container -->
             <div class="form-container">
                 <!-- Admin creation form that submits to the create endpoint -->
-                <form action="/attendance-system/public/admin/admins/create" method="post">
+                <form action="/attendance-system/admin/admins/create" method="post">
                     <!-- First name input field -->
                     <div class="form-group">
                         <label for="firstname">First Name</label>
