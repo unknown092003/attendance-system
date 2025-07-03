@@ -187,8 +187,9 @@
             </div>
         </main>
         
+        <!-- Page footer -->
         <footer>
-            <p>&copy; <?php echo date('Y'); ?> Attendance System</p>
+            <p>&copy; <?php echo date('Y'); ?> erroljohnpardillo@gmail.com </p>
         </footer>
     </div>
     

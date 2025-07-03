@@ -187,10 +187,9 @@
             <?php endif; ?>
         </main>
         
-        <!-- Page footer -->
+       <!-- Page footer -->
         <footer>
-            <!-- Dynamic copyright year -->
-            <p>&copy; <?php echo date('Y'); ?> Attendance System</p>
+            <p>&copy; <?php echo date('Y'); ?> erroljohnpardillo@gmail.com </p>
         </footer>
     </div>
 </body>
