@@ -117,8 +117,8 @@
                     </select>
                 </div>
                 <div class="form-group" id="pinGroup" style="margin-bottom: 15px; display: none;">
-                    <label  for="newPin">New PIN (4 digits):</label>
-                    <input type="text" id="newPin" maxlength="4" pattern="[0-9]{4}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Enter 4-digit PIN">
+                    <label>PIN</label>
+                    <p style="color: #666; font-size: 14px; margin: 0;">A unique 4-digit PIN will be automatically generated when status is set to active.</p>
                 </div>
                 <div style="text-align: right; margin-top: 20px;">
                     <button type="button" onclick="closeEditModal()" class="btn secondary" style="margin-right: 10px;">Cancel</button>
@@ -147,14 +147,11 @@
 
         function togglePinField(status) {
             const pinGroup = document.getElementById('pinGroup');
-            const newPinInput = document.getElementById('newPin');
             
             if (status === 'inactive') {
                 pinGroup.style.display = 'none';
-                newPinInput.required = false;
             } else {
                 pinGroup.style.display = 'block';
-                newPinInput.required = true;
             }
         }
 
@@ -169,22 +166,12 @@
             
             const userId = document.getElementById('editUserId').value;
             const status = document.getElementById('editStatus').value;
-            const newPin = document.getElementById('newPin').value;
-            
-            // Validate PIN if status is active
-            if (status === 'active' && (!newPin || newPin.length !== 4 || !/^[0-9]{4}$/.test(newPin))) {
-                alert('Please enter a valid 4-digit PIN for active status.');
-                return;
-            }
             
             // Submit the form
             const formData = new FormData();
             formData.append('user_id', userId);
             formData.append('status', status);
             formData.append('moa', document.getElementById('editMoa').value);
-            if (status === 'active') {
-                formData.append('pin', newPin);
-            }
             
             fetch('/attendance-system/admin/users/update-status', {
                 method: 'POST',

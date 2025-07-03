@@ -55,13 +55,10 @@
                                value="<?php echo htmlspecialchars($data['full_name'] ?? ''); ?>" required>
                     </div>
                     
-                    <!-- PIN input field with validation -->
+                    <!-- PIN will be auto-generated -->
                     <div class="form-group">
-                        <label for="pin">PIN (4 digits)</label>
-                        <!-- Restricted to exactly 4 digits with pattern validation -->
-                        <input type="password" id="pin" name="pin" class="form-control" 
-                               value="<?php echo htmlspecialchars($data['pin'] ?? ''); ?>" 
-                               maxlength="4" pattern="[0-9]{4}" required>
+                        <label>PIN</label>
+                        <p class="form-note">A unique 4-digit PIN will be automatically generated for this user.</p>
                     </div>
                     
                     <!-- Role selection dropdown -->

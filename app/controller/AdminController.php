@@ -203,7 +203,6 @@ class AdminController {
     public function createUser() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $full_name = $_POST['full_name'] ?? '';
-            $pin = $_POST['pin'] ?? '';
             $role = $_POST['role'] ?? 'user';
             $required_hours = !empty($_POST['required_hours']) ? (float)$_POST['required_hours'] : null;
             
@@ -214,19 +213,22 @@ class AdminController {
                 $errors[] = 'Full name is required';
             }
             
-            if (empty($pin) || strlen($pin) !== 4 || !ctype_digit($pin)) {
-                $errors[] = 'PIN must be 4 digits';
-            }
-            
             if (empty($errors)) {
-                $userId = $this->userModel->createUser($full_name, $pin, $role, $required_hours);
-                
-                if ($userId) {
-                    Session::setFlash('success', 'User created successfully');
-                    header("Location: /attendance-system/admin/users");
-                    exit();
-                } else {
-                    $errors[] = 'Failed to create user';
+                try {
+                    // Generate unique PIN automatically
+                    $pin = $this->userModel->generateUniquePin();
+                    
+                    $userId = $this->userModel->createUser($full_name, $pin, $role, $required_hours);
+                    
+                    if ($userId) {
+                        Session::setFlash('success', "User created successfully. PIN: {$pin}");
+                        header("Location: /attendance-system/admin/users");
+                        exit();
+                    } else {
+                        $errors[] = 'Failed to create user';
+                    }
+                } catch (Exception $e) {
+                    $errors[] = 'Error generating PIN: ' . $e->getMessage();
                 }
             }
             
@@ -250,7 +252,6 @@ class AdminController {
         
         $userId = $_POST['user_id'] ?? 0;
         $status = $_POST['status'] ?? '';
-        $pin = $_POST['pin'] ?? '';
         $moa = $_POST['moa'] ?? '0';
         
         if (!$userId || !in_array($status, ['active', 'inactive'])) {
@@ -267,18 +268,21 @@ class AdminController {
             // Remove PIN when setting to inactive
             $updateData['pin'] = null;
         } else {
-            // Require PIN when setting to active
-            if (empty($pin) || strlen($pin) !== 4 || !ctype_digit($pin)) {
-                echo json_encode(['success' => false, 'message' => 'Valid 4-digit PIN required for active status']);
+            // Auto-generate PIN when setting to active
+            try {
+                $pin = $this->userModel->generateUniquePin();
+                $updateData['pin'] = $pin;
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Error generating PIN: ' . $e->getMessage()]);
                 exit();
             }
-            $updateData['pin'] = $pin;
         }
         
         $success = $this->userModel->updateUser($userId, $updateData);
         
         if ($success) {
-            echo json_encode(['success' => true, 'message' => 'Status updated successfully']);
+            $message = $status === 'active' ? "Status updated successfully. New PIN: {$pin}" : 'Status updated successfully';
+            echo json_encode(['success' => true, 'message' => $message]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to update status']);
         }
@@ -392,7 +396,9 @@ class AdminController {
         
         header('Content-Type: application/json');
         if ($success) {
-            echo json_encode(['success' => true, 'message' => 'Special attendance recorded successfully']);
+            $studentCount = count($students);
+            $message = "Special attendance recorded successfully for {$studentCount} intern(s). Attendance records (8:00 AM - 4:00 PM) and 'Work from home' journal entries have been created automatically.";
+            echo json_encode(['success' => true, 'message' => $message]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to record special attendance']);
         }

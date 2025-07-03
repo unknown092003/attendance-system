@@ -37,7 +37,7 @@
                 <!-- Total Interns card -->
                 <div class="stat-card">
                     <h3>Active Interns</h3>
-                    <div class="stat-value"><?php echo $data['userCount']; ?></div>
+                    <div class="stat-value"><?php echo $data['activeUsers']; ?></div>
                 </div>
                 <!-- Today's attendance card -->
                 <div class="stat-card">
@@ -134,8 +134,8 @@
                             // Get today's date
                             $today = date('Y-m-d');
                             
-                            // Query all students
-                            $stmt = $db->query("SELECT id, full_name FROM users ORDER BY full_name ASC");
+                            // Query all active students only
+                            $stmt = $db->query("SELECT id, full_name FROM users WHERE status = 'active' ORDER BY full_name ASC");
                             $allStudents = $stmt->fetchAll();
                             
                             // Query students with attendance today

@@ -251,4 +251,33 @@ class UserModel {
         $stmt->execute([$today]);
         return $stmt->fetchColumn();
     }
+    
+    /**
+     * Generate a unique 4-digit PIN
+     */
+    public function generateUniquePin() {
+        $maxAttempts = 100;
+        $attempt = 0;
+        
+        do {
+            // Generate random 4-digit PIN
+            $pin = str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            
+            // Check if PIN already exists
+            $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE pin = ?");
+            $stmt->execute([$pin]);
+            $exists = $stmt->fetchColumn() > 0;
+            
+            $attempt++;
+            
+            // If PIN doesn't exist, return it
+            if (!$exists) {
+                return $pin;
+            }
+            
+        } while ($attempt < $maxAttempts);
+        
+        // If we couldn't generate a unique PIN after max attempts, throw an error
+        throw new Exception("Unable to generate unique PIN after {$maxAttempts} attempts");
+    }
 }

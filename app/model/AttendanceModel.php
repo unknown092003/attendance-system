@@ -415,6 +415,7 @@ class AttendanceModel {
                 // Create time in and time out entries - fixed at 8:00 AM to 4:00 PM
                 $timeIn = $date . ' 08:00:00';
                 $timeOut = $date . ' 16:00:00';
+                $journalTimestamp = $date . ' 17:00:00'; // Set journal timestamp to 5:00 PM
                 
                 // Check if student already has attendance for this date
                 $stmt = $this->db->prepare("
@@ -424,12 +425,29 @@ class AttendanceModel {
                 $stmt->execute([$studentId, $date]);
                 
                 if ($stmt->rowCount() === 0) {
-                    // Simple insert with just the required fields
+                    // Insert attendance record
                     $stmt = $this->db->prepare("
                         INSERT INTO attendance (user_id, time_in, time_out) 
                         VALUES (?, ?, ?)
                     ");
                     $stmt->execute([$studentId, $timeIn, $timeOut]);
+                }
+                
+                // Check if student already has a journal entry for this date
+                $stmt = $this->db->prepare("
+                    SELECT id FROM daily_journals 
+                    WHERE user_id = ? AND date = ?
+                ");
+                $stmt->execute([$studentId, $date]);
+                
+                if ($stmt->rowCount() === 0) {
+                    // Create automatic journal entry for "Work from home"
+                    $journalText = "Work from home - Special attendance recorded by admin.";
+                    $stmt = $this->db->prepare("
+                        INSERT INTO daily_journals (user_id, date, journal_text, created_at) 
+                        VALUES (?, ?, ?, ?)
+                    ");
+                    $stmt->execute([$studentId, $date, $journalText, $journalTimestamp]);
                 }
             }
             
@@ -437,6 +455,7 @@ class AttendanceModel {
             return true;
         } catch (PDOException $e) {
             $this->db->rollBack();
+            error_log("Special attendance error: " . $e->getMessage());
             return false;
         }
     }
