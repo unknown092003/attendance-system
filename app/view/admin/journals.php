@@ -66,7 +66,9 @@
                         <p>No attendance records for this date.</p>
                     <?php else: ?>
                         <!-- Attendance records table -->
-                        <table>
+                        <div class="table-container">
+                            <div class="dashboard-section">
+                                <table>
                             <thead>
                                 <tr>
                                     <th>Time In</th>
@@ -120,7 +122,9 @@
                                     <td><strong><?php echo number_format($totalHours, 2); ?> hrs</strong></td>
                                 </tr>
                             </tbody>
-                        </table>
+                                </table>
+                            </div>
+                        </div>
                     <?php endif; ?>
                 </div>
                 
@@ -146,7 +150,9 @@
                         <p>No students found.</p>
                     <?php else: ?>
                         <!-- Students table -->
-                        <table>
+                        <div class="table-container">
+                            <div class="dashboard-section">
+                                <table>
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -173,7 +179,9 @@
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
-                        </table>
+                                </table>
+                            </div>
+                        </div>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>

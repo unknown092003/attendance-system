@@ -45,7 +45,9 @@
                 <?php if (empty($data['activeUsers'])): ?>
                     <p>No active users found.</p>
                 <?php else: ?>
-                    <table>
+                    <div class="table-container">
+                        <div class="dashboard-section">
+                            <table>
                         <thead>
                             <tr>
                                 <th>Username</th>
@@ -71,7 +73,9 @@
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
-                    </table>
+                            </table>
+                        </div>
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -81,7 +85,9 @@
                 <?php if (empty($data['inactiveUsers'])): ?>
                     <p>No inactive users found.</p>
                 <?php else: ?>
-                    <table>
+                    <div class="table-container">
+                        <div class="dashboard-section">
+                            <table>
                         <thead>
                             <tr>
                                 <th>Username</th>
@@ -107,7 +113,9 @@
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
-                    </table>
+                            </table>
+                        </div>
+                    </div>
                 <?php endif; ?>
             </div>
         </main>
