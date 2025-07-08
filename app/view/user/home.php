@@ -6,15 +6,173 @@
     <title>Attendance System - Home</title>
     <link rel="stylesheet" href="/attendance-system/assets/css/style.css">
     <link rel="stylesheet" href="/attendance-system/assets/css/home.css">
+<style>
+    /* Modern, clean header styles */
+    .ocd_header {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+    }
+    .ocd_header img {
+        height: 40px;
+        width: auto;
+        margin-right: 1rem;
+    }
+    .header-main {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 1rem;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .user-info strong {
+        font-size: 1rem;
+        color: #222;
+        margin-right: 0.5rem;
+    }
+    .profile-btn, .logout-btn {
+        padding: 0.4em 1em;
+        border: none;
+        border-radius: 20px;
+        background: #f5f5f5;
+        color: #333;
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: background 0.2s, color 0.2s;
+    }
+    .profile-btn:hover, .logout-btn:hover {
+        background: #007bff;
+        color: #fff;
+    }
+    @media (max-width: 600px) {
+        .header-main {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0.75rem 0.5rem;
+        }
+        .ocd_header {
+            margin-bottom: 0.5rem;
+            padding: 0;
+        }
+        .user-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.3rem;
+            width: 100%;
+        }
+        .profile-btn, .logout-btn {
+            width: 100%;
+            margin-bottom: 0.3rem;
+            font-size: 1rem;
+        }
+    }
+    header {
+        position: relative;
+        width: 100%;
+        height: 270px;
+        background: url('/attendance-system/assets/img/ocd.png') center center/cover no-repeat;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    header::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.90);
+        z-index: 1;
+    }
+    .profile-header {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        max-width: none;
+        z-index: 2;
+    }
+    .profile-header .profile-img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 0.8rem;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #007bff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        background: #f5f5f5;
+    }
+    .profile-header .divider {
+        width: 36px;
+        height: 2px;
+        margin-bottom: 0.7rem;
+    }
+    .profile-header .user-name {
+        font-size: 1.5rem;
+        color: orange;
+        margin-bottom: 1.1rem;
+    }
+    .profile-header .profile-actions {
+        gap: 0.6rem;
+    }
+    .profile-header .profile-btn, .profile-header .logout-btn {
+        padding: 0.35em 1.1em;
+        font-size: 0.95rem;
+    }
+    @media (max-width: 600px) {
+        header {
+            height: 170px;
+        }
+        .profile-header .profile-img {
+            width: 60px;
+            height: 60px;
+        }
+        .profile-header .divider {
+            width: 24px;
+            height: 2px;
+            margin-bottom: 0.5rem;
+        }
+        .profile-header .user-name {
+            font-size: 1.1rem;
+        }
+        .profile-header .profile-actions {
+            gap: 0.5rem;
+        }
+        .profile-header .profile-btn, .profile-header .logout-btn {
+            font-size: 0.85rem;
+            padding: 0.25em 0.7em;
+        }
+    }
+</style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Attendance System</h1>
-            <div class="user-info">
-                <span>Welcome, <?php echo htmlspecialchars($data['user']['full_name'] ?? 'User'); ?></span>
-                <a href="/attendance-system/profile" class="profile-btn">Profile</a>
-                <a href="/attendance-system/logout" class="logout-btn">Logout</a>
+            <div class="profile-header">
+                <?php
+                    $avatar = $data['user']['avatar'] ?? '';
+                    $profileImg = (!empty($avatar) && $avatar !== 'default.jpg')
+                        ? '/attendance-system/assets/uploads/avatars/' . htmlspecialchars($avatar)
+                        : '/attendance-system/assets/img/ocd.png';
+                ?>
+                <img src="<?php echo $profileImg; ?>" alt="Profile Logo" class="profile-img">
+                <div class="divider"></div>
+                <div class="user-name">
+                    <?php echo htmlspecialchars($data['user']['full_name'] ?? 'User'); ?>
+                </div>
+                <div class="profile-actions">
+                    <a href="/attendance-system/profile" class="profile-btn">Profile</a>
+                    <a href="/attendance-system/logout" class="logout-btn">Logout</a>
+                </div>
             </div>
         </header>
         

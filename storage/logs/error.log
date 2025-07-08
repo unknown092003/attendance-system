@@ -1,0 +1,92 @@
+[05-Jul-2025 19:35:14 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 19:35:14 Asia/Singapore] Database connection error: SQLSTATE[HY000] [2002] No such file or directory
+[05-Jul-2025 19:35:14 Asia/Singapore] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] No such file or directory in /home/runner/workspace/app/model/UserModel.php:10
+Stack trace:
+#0 /home/runner/workspace/app/model/UserModel.php(10): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 /home/runner/workspace/app/controller/AuthController.php(10): UserModel->__construct()
+#2 /home/runner/workspace/app/core/Router.php(72): AuthController->__construct()
+#3 /home/runner/workspace/app/core/Router.php(55): Router->dispatchController('AuthController', 'showLoginForm')
+#4 /home/runner/workspace/public/index.php(36): Router->handleRequest()
+#5 {main}
+  thrown in /home/runner/workspace/app/model/UserModel.php on line 10
+[05-Jul-2025 19:35:14 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 19:35:14 Asia/Singapore] Database connection error: SQLSTATE[HY000] [2002] No such file or directory
+[05-Jul-2025 19:35:14 Asia/Singapore] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] No such file or directory in /home/runner/workspace/app/model/UserModel.php:10
+Stack trace:
+#0 /home/runner/workspace/app/model/UserModel.php(10): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 /home/runner/workspace/app/controller/AuthController.php(10): UserModel->__construct()
+#2 /home/runner/workspace/app/core/Router.php(72): AuthController->__construct()
+#3 /home/runner/workspace/app/core/Router.php(55): Router->dispatchController('AuthController', 'showLoginForm')
+#4 /home/runner/workspace/public/index.php(36): Router->handleRequest()
+#5 {main}
+  thrown in /home/runner/workspace/app/model/UserModel.php on line 10
+[05-Jul-2025 19:51:14 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 19:51:14 Asia/Singapore] PHP Parse error:  syntax error, unexpected token "`" in /home/runner/workspace/config/routes.php on line 57
+[05-Jul-2025 19:51:15 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 19:51:15 Asia/Singapore] PHP Parse error:  syntax error, unexpected token "`" in /home/runner/workspace/config/routes.php on line 57
+[05-Jul-2025 19:56:28 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 19:56:28 Asia/Singapore] Database connection error: SQLSTATE[HY000] [2002] No such file or directory
+[05-Jul-2025 19:56:28 Asia/Singapore] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] No such file or directory in /home/runner/workspace/app/model/UserModel.php:10
+Stack trace:
+#0 /home/runner/workspace/app/model/UserModel.php(10): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 /home/runner/workspace/app/controller/AuthController.php(10): UserModel->__construct()
+#2 /home/runner/workspace/app/core/Router.php(72): AuthController->__construct()
+#3 /home/runner/workspace/app/core/Router.php(55): Router->dispatchController('AuthController', 'showLoginForm')
+#4 /home/runner/workspace/public/index.php(36): Router->handleRequest()
+#5 {main}
+  thrown in /home/runner/workspace/app/model/UserModel.php on line 10
+[05-Jul-2025 19:56:28 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 19:56:28 Asia/Singapore] Database connection error: SQLSTATE[HY000] [2002] No such file or directory
+[05-Jul-2025 19:56:28 Asia/Singapore] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] No such file or directory in /home/runner/workspace/app/model/UserModel.php:10
+Stack trace:
+#0 /home/runner/workspace/app/model/UserModel.php(10): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 /home/runner/workspace/app/controller/AuthController.php(10): UserModel->__construct()
+#2 /home/runner/workspace/app/core/Router.php(72): AuthController->__construct()
+#3 /home/runner/workspace/app/core/Router.php(55): Router->dispatchController('AuthController', 'showLoginForm')
+#4 /home/runner/workspace/public/index.php(36): Router->handleRequest()
+#5 {main}
+  thrown in /home/runner/workspace/app/model/UserModel.php on line 10
+[05-Jul-2025 19:56:51 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 19:56:51 Asia/Singapore] Database connection error: SQLSTATE[HY000] [2002] No such file or directory
+[05-Jul-2025 19:56:51 Asia/Singapore] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] No such file or directory in /home/runner/workspace/app/model/UserModel.php:10
+Stack trace:
+#0 /home/runner/workspace/app/model/UserModel.php(10): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 /home/runner/workspace/app/controller/AuthController.php(10): UserModel->__construct()
+#2 /home/runner/workspace/app/core/Router.php(72): AuthController->__construct()
+#3 /home/runner/workspace/app/core/Router.php(55): Router->dispatchController('AuthController', 'showLoginForm')
+#4 /home/runner/workspace/public/index.php(36): Router->handleRequest()
+#5 {main}
+  thrown in /home/runner/workspace/app/model/UserModel.php on line 10
+[05-Jul-2025 19:56:51 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 19:56:51 Asia/Singapore] Database connection error: SQLSTATE[HY000] [2002] No such file or directory
+[05-Jul-2025 19:56:51 Asia/Singapore] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] No such file or directory in /home/runner/workspace/app/model/UserModel.php:10
+Stack trace:
+#0 /home/runner/workspace/app/model/UserModel.php(10): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 /home/runner/workspace/app/controller/AuthController.php(10): UserModel->__construct()
+#2 /home/runner/workspace/app/core/Router.php(72): AuthController->__construct()
+#3 /home/runner/workspace/app/core/Router.php(55): Router->dispatchController('AuthController', 'showLoginForm')
+#4 /home/runner/workspace/public/index.php(36): Router->handleRequest()
+#5 {main}
+  thrown in /home/runner/workspace/app/model/UserModel.php on line 10
+[05-Jul-2025 20:06:19 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 20:06:19 Asia/Singapore] Database connection error: SQLSTATE[HY000] [2002] No such file or directory
+[05-Jul-2025 20:06:19 Asia/Singapore] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] No such file or directory in /home/runner/workspace/app/model/UserModel.php:10
+Stack trace:
+#0 /home/runner/workspace/app/model/UserModel.php(10): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 /home/runner/workspace/app/controller/AuthController.php(10): UserModel->__construct()
+#2 /home/runner/workspace/app/core/Router.php(72): AuthController->__construct()
+#3 /home/runner/workspace/app/core/Router.php(55): Router->dispatchController('AuthController', 'showLoginForm')
+#4 /home/runner/workspace/public/index.php(36): Router->handleRequest()
+#5 {main}
+  thrown in /home/runner/workspace/app/model/UserModel.php on line 10
+[05-Jul-2025 20:06:19 Asia/Singapore] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/app/core/Session.php on line 12
+[05-Jul-2025 20:06:19 Asia/Singapore] Database connection error: SQLSTATE[HY000] [2002] No such file or directory
+[05-Jul-2025 20:06:19 Asia/Singapore] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] No such file or directory in /home/runner/workspace/app/model/UserModel.php:10
+Stack trace:
+#0 /home/runner/workspace/app/model/UserModel.php(10): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 /home/runner/workspace/app/controller/AuthController.php(10): UserModel->__construct()
+#2 /home/runner/workspace/app/core/Router.php(72): AuthController->__construct()
+#3 /home/runner/workspace/app/core/Router.php(55): Router->dispatchController('AuthController', 'showLoginForm')
+#4 /home/runner/workspace/public/index.php(36): Router->handleRequest()
+#5 {main}
+  thrown in /home/runner/workspace/app/model/UserModel.php on line 10
